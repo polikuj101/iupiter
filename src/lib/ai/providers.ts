@@ -47,7 +47,7 @@ export async function streamChat(
       });
     } else if (gemini) {
       stream = await gemini.chat.completions.create({
-        model: process.env.GEMINI_MODEL ?? "gemini-3.1-flash-lite",
+        model: process.env.GEMINI_MODEL ?? "gemini-2.5-flash-lite",
         messages: openaiMessages,
         max_tokens: 512,
         stream: true,
@@ -60,7 +60,7 @@ export async function streamChat(
     if (grok && gemini) {
       console.warn("[AI] Grok failed, falling back to Gemini:", err);
       stream = await gemini.chat.completions.create({
-        model: process.env.GEMINI_MODEL ?? "gemini-3.1-flash-lite",
+        model: process.env.GEMINI_MODEL ?? "gemini-2.5-flash-lite",
         messages: openaiMessages,
         max_tokens: 512,
         stream: true,
