@@ -1,4 +1,5 @@
 import OpenAI from "openai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import type { AgentConfig, Message } from "../types";
 import { buildSystemPrompt } from "./prompt-builder";
 
@@ -8,12 +9,66 @@ function getGrokClient(): OpenAI | null {
   return new OpenAI({ apiKey: key, baseURL: "https://api.x.ai/v1" });
 }
 
-function getGeminiClient(): OpenAI | null {
-  const key = process.env.GEMINI_API_KEY;
-  if (!key) return null;
-  return new OpenAI({
-    apiKey: key,
-    baseURL: "https://generativelanguage.googleapis.com/v1beta/openai/",
+async function streamGrok(
+  messages: OpenAI.ChatCompletionMessageParam[],
+  encoder: TextEncoder
+): Promise<ReadableStream<Uint8Array>> {
+  const grok = getGrokClient()!;
+  const stream = await grok.chat.completions.create({
+    model: process.env.GROK_MODEL ?? "grok-3-mini-fast",
+    messages,
+    max_tokens: 512,
+    stream: true,
+  });
+
+  return new ReadableStream({
+    async start(controller) {
+      try {
+        for await (const chunk of stream) {
+          const text = chunk.choices?.[0]?.delta?.content;
+          if (text) controller.enqueue(encoder.encode(text));
+        }
+        controller.close();
+      } catch (err) {
+        controller.error(err);
+      }
+    },
+  });
+}
+
+async function streamGemini(
+  systemPrompt: string,
+  messages: Message[],
+  encoder: TextEncoder
+): Promise<ReadableStream<Uint8Array>> {
+  const key = process.env.GEMINI_API_KEY!;
+  const genAI = new GoogleGenerativeAI(key);
+  const model = genAI.getGenerativeModel({
+    model: process.env.GEMINI_MODEL ?? "gemini-2.5-flash-lite",
+    systemInstruction: systemPrompt,
+  });
+
+  const history = messages.slice(0, -1).map((m) => ({
+    role: m.role === "user" ? "user" as const : "model" as const,
+    parts: [{ text: m.content }],
+  }));
+
+  const chat = model.startChat({ history });
+  const lastMessage = messages[messages.length - 1].content;
+  const result = await chat.sendMessageStream(lastMessage);
+
+  return new ReadableStream({
+    async start(controller) {
+      try {
+        for await (const chunk of result.stream) {
+          const text = chunk.text();
+          if (text) controller.enqueue(encoder.encode(text));
+        }
+        controller.close();
+      } catch (err) {
+        controller.error(err);
+      }
+    },
   });
 }
 
@@ -22,6 +77,7 @@ export async function streamChat(
   agentConfig: AgentConfig
 ): Promise<ReadableStream<Uint8Array>> {
   const systemPrompt = buildSystemPrompt(agentConfig);
+  const encoder = new TextEncoder();
 
   const openaiMessages: OpenAI.ChatCompletionMessageParam[] = [
     { role: "system", content: systemPrompt },
@@ -31,60 +87,22 @@ export async function streamChat(
     })),
   ];
 
-  // Try Grok first, then Gemini
-  const grok = getGrokClient();
-  const gemini = getGeminiClient();
-
-  let stream: AsyncIterable<OpenAI.ChatCompletionChunk>;
+  const hasGrok = !!process.env.XAI_API_KEY;
+  const hasGemini = !!process.env.GEMINI_API_KEY;
 
   try {
-    if (grok) {
-      stream = await grok.chat.completions.create({
-        model: process.env.GROK_MODEL ?? "grok-3-mini-fast",
-        messages: openaiMessages,
-        max_tokens: 512,
-        stream: true,
-      });
-    } else if (gemini) {
-      stream = await gemini.chat.completions.create({
-        model: process.env.GEMINI_MODEL ?? "gemini-2.5-flash-lite",
-        messages: openaiMessages,
-        max_tokens: 512,
-        stream: true,
-      });
+    if (hasGrok) {
+      return await streamGrok(openaiMessages, encoder);
+    } else if (hasGemini) {
+      return await streamGemini(systemPrompt, messages, encoder);
     } else {
       throw new Error("No API key configured (XAI_API_KEY or GEMINI_API_KEY)");
     }
   } catch (err) {
-    // Fallback to Gemini if Grok fails
-    if (grok && gemini) {
+    if (hasGrok && hasGemini) {
       console.warn("[AI] Grok failed, falling back to Gemini:", err);
-      stream = await gemini.chat.completions.create({
-        model: process.env.GEMINI_MODEL ?? "gemini-2.5-flash-lite",
-        messages: openaiMessages,
-        max_tokens: 512,
-        stream: true,
-      });
-    } else {
-      throw err;
+      return await streamGemini(systemPrompt, messages, encoder);
     }
+    throw err;
   }
-
-  const encoder = new TextEncoder();
-
-  return new ReadableStream({
-    async start(controller) {
-      try {
-        for await (const chunk of stream) {
-          const text = chunk.choices?.[0]?.delta?.content;
-          if (text) {
-            controller.enqueue(encoder.encode(text));
-          }
-        }
-        controller.close();
-      } catch (err) {
-        controller.error(err);
-      }
-    },
-  });
 }
