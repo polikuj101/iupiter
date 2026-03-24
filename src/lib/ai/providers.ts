@@ -44,7 +44,7 @@ async function streamGemini(
   const key = process.env.GEMINI_API_KEY!;
   const genAI = new GoogleGenerativeAI(key);
   const model = genAI.getGenerativeModel({
-    model: process.env.GEMINI_MODEL ?? "gemini-2.5-flash-lite",
+    model: process.env.GEMINI_MODEL ?? "gemini-3.1-flash-lite-preview",
     systemInstruction: systemPrompt,
   });
 
