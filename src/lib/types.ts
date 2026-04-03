@@ -2,7 +2,7 @@ export interface AgentConfig {
   businessName: string;
   businessDescription: string;
   agentName: string;
-  tone: "formal" | "friendly" | "casual";
+  tone: "formal" | "friendly" | "casual" | "adaptive";
   greeting: string;
   knowledgeTexts: { filename: string; content: string }[];
   contactInfo: string;
