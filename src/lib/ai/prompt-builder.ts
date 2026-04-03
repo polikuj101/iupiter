@@ -7,6 +7,8 @@ const TONE_INSTRUCTIONS = {
     "Be warm and approachable. Use a conversational tone. Add occasional emojis.",
   casual:
     "Be relaxed and casual. Keep it short and fun. Use emojis freely.",
+  adaptive:
+    "Match the client's tone and energy. Mirror their level of formality, vocabulary, and punctuation style.",
 };
 
 export function buildSystemPrompt(config: AgentConfig): string {
