@@ -1,27 +1,30 @@
-'use client';
-
+export const dynamic = 'force-dynamic';
 import React from 'react';
 import Link from 'next/link';
+import { auth } from '@clerk/nextjs/server';
 import { 
   ArrowRight, PlayCircle, Zap, MessageCircle,
   Building2, UploadCloud, Rocket, Clock, 
   TrendingUp, CalendarCheck, Target, HeartHandshake
 } from 'lucide-react';
 
-export default function HomePage() {
+export default async function HomePage() {
+  const { userId } = await auth();
+  const isLoggedIn = !!userId;
+
   return (
     <main className="min-h-screen bg-[#FAFBFC] font-sans text-[#1F2937]">
-      <Navigation />
-      <HeroSection />
+      <Navigation isLoggedIn={isLoggedIn} />
+      <HeroSection isLoggedIn={isLoggedIn} />
       <HowItWorksSection />
       <FeaturesSection />
       <DemoSection />
-      <CtaFooterSection />
+      <CtaFooterSection isLoggedIn={isLoggedIn} />
     </main>
   );
 }
 
-function Navigation() {
+function Navigation({ isLoggedIn }: { isLoggedIn: boolean }) {
   return (
     <nav className="fixed top-0 w-full z-50 backdrop-blur-md bg-white/80 border-b border-gray-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -29,7 +32,7 @@ function Navigation() {
           {/* Logo */}
           <div className="flex-shrink-0 flex items-center">
             <Link href="/" className="text-2xl font-bold text-[#2563EB] tracking-tight">
-              Saleon
+              Iupiter
             </Link>
           </div>
 
@@ -48,18 +51,29 @@ function Navigation() {
               Live Demo
             </Link>
             <div className="flex items-center space-x-4 pl-4">
-              <Link
-                href="/api/auth/login"
-                className="text-sm font-medium text-[#1F2937] px-5 py-2.5 rounded-lg border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-all"
-              >
-                Login
-              </Link>
-              <Link
-                href="/api/auth/signup"
-                className="text-sm font-medium text-white bg-[#2563EB] px-5 py-2.5 rounded-lg hover:bg-blue-700 shadow-sm hover:shadow-md transition-all"
-              >
-                Start Free Trial
-              </Link>
+              {isLoggedIn ? (
+                <Link
+                  href="/dashboard"
+                  className="text-sm font-medium text-white bg-[#2563EB] px-5 py-2.5 rounded-lg hover:bg-blue-700 shadow-sm hover:shadow-md transition-all"
+                >
+                  Dashboard
+                </Link>
+              ) : (
+                <>
+                  <Link
+                    href="/sign-in"
+                    className="text-sm font-medium text-[#1F2937] px-5 py-2.5 rounded-lg border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-all"
+                  >
+                    Login
+                  </Link>
+                  <Link
+                    href="/sign-up"
+                    className="text-sm font-medium text-white bg-[#2563EB] px-5 py-2.5 rounded-lg hover:bg-blue-700 shadow-sm hover:shadow-md transition-all"
+                  >
+                    Start Free Trial
+                  </Link>
+                </>
+              )}
             </div>
           </div>
 
@@ -77,18 +91,18 @@ function Navigation() {
   );
 }
 
-function HeroSection() {
+function HeroSection({ isLoggedIn }: { isLoggedIn: boolean }) {
   return (
     <section className="pt-32 pb-20 px-4 sm:px-6 lg:px-8 overflow-hidden bg-[#FAFBFC]">
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-        <HeroContent />
+        <HeroContent isLoggedIn={isLoggedIn} />
         <BrowserMockup />
       </div>
     </section>
   );
 }
 
-function HeroContent() {
+function HeroContent({ isLoggedIn }: { isLoggedIn: boolean }) {
   return (
     <div className="space-y-8 z-10 text-center lg:text-left">
       {/* Badge */}
@@ -112,7 +126,7 @@ function HeroContent() {
       {/* CTAs */}
       <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start pt-2">
         <Link
-          href="/api/auth/signup"
+          href={isLoggedIn ? "/dashboard" : "/sign-up"}
           className="inline-flex justify-center items-center gap-2 px-6 py-3.5 text-base font-medium text-white bg-[#2563EB] hover:bg-blue-700 rounded-lg shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md"
         >
           Build Your Agent
@@ -169,7 +183,7 @@ function BrowserMockup() {
               <svg className="w-3 h-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
               </svg>
-              <span>saleon.ai/dashboard</span>
+              <span>iupiter.ai/dashboard</span>
             </div>
           </div>
           <div className="w-10" /> {/* Spacer for symmetry */}
@@ -210,12 +224,12 @@ function BrowserMockup() {
                 <Zap className="w-5 h-5 text-[#2563EB]" />
               </div>
               <div>
-                <p className="text-[13px] font-medium text-gray-500 mb-1">Saleon AI</p>
+                <p className="text-[13px] font-medium text-gray-500 mb-1">Iupiter AI</p>
                 <div className="flex items-center gap-3">
                    <div className="bg-[#F3F4F6] rounded-2xl rounded-tl-sm px-4 py-3 h-[46px] flex items-center">
                      <TypingDots />
                    </div>
-                   <span className="text-xs text-gray-400 font-medium animate-pulse">Saleon AI is typing...</span>
+                   <span className="text-xs text-gray-400 font-medium animate-pulse">Iupiter AI is typing...</span>
                 </div>
               </div>
             </div>
@@ -378,7 +392,7 @@ function DemoSection() {
   );
 }
 
-function CtaFooterSection() {
+function CtaFooterSection({ isLoggedIn }: { isLoggedIn: boolean }) {
   return (
     <footer className="bg-[#FAFBFC] border-t border-gray-200 pt-24 pb-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto text-center mb-20 md:mb-24">
@@ -388,7 +402,7 @@ function CtaFooterSection() {
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Link
-            href="/api/auth/signup"
+            href={isLoggedIn ? "/dashboard" : "/sign-up"}
             className="inline-flex justify-center items-center gap-2 px-8 py-4 text-[17px] font-medium text-white bg-[#2563EB] hover:bg-blue-700 rounded-xl shadow-lg shadow-blue-600/20 transition-all hover:-translate-y-0.5"
           >
             Build Your Agent
@@ -405,7 +419,7 @@ function CtaFooterSection() {
       
       <div className="border-t border-gray-200 pt-8 flex flex-col md:flex-row justify-between items-center text-gray-500 text-sm">
         <div className="flex items-center gap-2 mb-4 md:mb-0">
-          <span className="font-bold text-[#2563EB] text-lg">Saleon</span>
+          <span className="font-bold text-[#2563EB] text-lg">Iupiter</span>
           <span>© 2026 AI Agent Constructor</span>
         </div>
         <p>Built with ❤️</p>
