@@ -2,21 +2,21 @@
 
 import {
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell, BarChart, Bar, Legend,
+  PieChart, Pie, Cell, BarChart, Bar,
 } from 'recharts';
 
 const PLATFORM_COLORS: Record<string, string> = {
-  whatsapp:  '#25D366',
-  instagram: '#E1306C',
-  messenger: '#0084FF',
+  whatsapp:  '#0A0A0A',
+  instagram: '#737373',
+  messenger: '#A3A3A3',
 };
 
 const FUNNEL_COLORS: Record<string, string> = {
-  new:       '#94a3b8',
-  contacted: '#60a5fa',
-  qualified: '#a78bfa',
-  converted: '#34d399',
-  lost:      '#f87171',
+  new:       '#D4D4D4',
+  contacted: '#A3A3A3',
+  qualified: '#737373',
+  converted: '#0A0A0A',
+  lost:      '#E5E5E5',
 };
 
 interface Props {
@@ -33,82 +33,133 @@ export default function AnalyticsCharts({ messagesPerDay, channelBreakdown, lead
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
       {/* Messages per day */}
-      <div className="lg:col-span-2 bg-white rounded-xl border border-slate-200 p-5">
-        <h3 className="font-semibold text-slate-900 mb-4">Messages per day</h3>
+      <Card title="Messages per day" className="lg:col-span-2">
         {hasMessages ? (
-          <ResponsiveContainer width="100%" height={200}>
-            <AreaChart data={messagesPerDay}>
+          <ResponsiveContainer width="100%" height={220}>
+            <AreaChart data={messagesPerDay} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
               <defs>
                 <linearGradient id="msgGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%"  stopColor="#3b82f6" stopOpacity={0.2} />
-                  <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                  <stop offset="0%"   stopColor="#0A0A0A" stopOpacity={0.12} />
+                  <stop offset="100%" stopColor="#0A0A0A" stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <XAxis dataKey="day" tick={{ fontSize: 11 }} tickFormatter={(v) => v.slice(5)} />
-              <YAxis tick={{ fontSize: 11 }} width={30} />
-              <Tooltip labelFormatter={(v) => `Date: ${v}`} />
+              <XAxis
+                dataKey="day"
+                tick={{ fontSize: 11, fill: '#A3A3A3' }}
+                tickFormatter={(v) => v.slice(5)}
+                tickLine={false}
+                axisLine={false}
+              />
+              <YAxis
+                tick={{ fontSize: 11, fill: '#A3A3A3' }}
+                width={28}
+                tickLine={false}
+                axisLine={false}
+              />
+              <Tooltip
+                labelFormatter={(v) => v}
+                contentStyle={{
+                  fontSize: 12,
+                  border: '1px solid #EAEAEA',
+                  borderRadius: 6,
+                  background: '#FFFFFF',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+                }}
+              />
               <Area
                 type="monotone"
                 dataKey="count"
-                stroke="#3b82f6"
+                stroke="#0A0A0A"
                 fill="url(#msgGrad)"
-                strokeWidth={2}
+                strokeWidth={1.5}
               />
             </AreaChart>
           </ResponsiveContainer>
         ) : (
           <EmptyState label="No messages yet" />
         )}
-      </div>
+      </Card>
 
       {/* Channel breakdown */}
-      <div className="bg-white rounded-xl border border-slate-200 p-5">
-        <h3 className="font-semibold text-slate-900 mb-4">Channels</h3>
+      <Card title="Channels">
         {hasChannels ? (
-          <ResponsiveContainer width="100%" height={200}>
-            <PieChart>
-              <Pie
-                data={channelBreakdown}
-                dataKey="count"
-                nameKey="platform"
-                innerRadius={55}
-                outerRadius={80}
-                paddingAngle={3}
-              >
-                {channelBreakdown.map((entry, i) => (
-                  <Cell
-                    key={i}
-                    fill={PLATFORM_COLORS[entry.platform] ?? '#94a3b8'}
-                  />
-                ))}
-              </Pie>
-              <Tooltip formatter={(v, name) => [v, name]} />
-              <Legend formatter={(v) => v.charAt(0).toUpperCase() + v.slice(1)} />
-            </PieChart>
-          </ResponsiveContainer>
+          <>
+            <ResponsiveContainer width="100%" height={170}>
+              <PieChart>
+                <Pie
+                  data={channelBreakdown}
+                  dataKey="count"
+                  nameKey="platform"
+                  innerRadius={50}
+                  outerRadius={70}
+                  paddingAngle={2}
+                  stroke="none"
+                >
+                  {channelBreakdown.map((entry, i) => (
+                    <Cell key={i} fill={PLATFORM_COLORS[entry.platform] ?? '#A3A3A3'} />
+                  ))}
+                </Pie>
+                <Tooltip
+                  contentStyle={{
+                    fontSize: 12,
+                    border: '1px solid #EAEAEA',
+                    borderRadius: 6,
+                    background: '#FFFFFF',
+                  }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+            <div className="mt-3 space-y-1.5">
+              {channelBreakdown.map((entry) => (
+                <div key={entry.platform} className="flex items-center justify-between text-[12px]">
+                  <div className="flex items-center gap-2">
+                    <span
+                      className="w-2 h-2 rounded-full"
+                      style={{ background: PLATFORM_COLORS[entry.platform] ?? '#A3A3A3' }}
+                    />
+                    <span className="text-[#525252] capitalize">{entry.platform}</span>
+                  </div>
+                  <span className="font-medium text-[#0A0A0A]">{entry.count}</span>
+                </div>
+              ))}
+            </div>
+          </>
         ) : (
           <EmptyState label="No data" />
         )}
-      </div>
+      </Card>
 
       {/* Lead funnel */}
-      <div className="lg:col-span-3 bg-white rounded-xl border border-slate-200 p-5">
-        <h3 className="font-semibold text-slate-900 mb-4">Lead funnel</h3>
+      <Card title="Lead funnel" className="lg:col-span-3">
         {hasFunnel ? (
           <ResponsiveContainer width="100%" height={180}>
-            <BarChart data={leadFunnel} layout="vertical">
-              <XAxis type="number" tick={{ fontSize: 11 }} />
+            <BarChart data={leadFunnel} layout="vertical" margin={{ top: 0, right: 10, left: 0, bottom: 0 }}>
+              <XAxis
+                type="number"
+                tick={{ fontSize: 11, fill: '#A3A3A3' }}
+                tickLine={false}
+                axisLine={false}
+              />
               <YAxis
                 type="category"
                 dataKey="status"
-                tick={{ fontSize: 12 }}
+                tick={{ fontSize: 12, fill: '#525252' }}
                 width={80}
+                tickLine={false}
+                axisLine={false}
                 tickFormatter={(v) => v.charAt(0).toUpperCase() + v.slice(1)}
               />
-              <Tooltip />
-              <Bar dataKey="count" radius={[0, 4, 4, 0]}>
+              <Tooltip
+                contentStyle={{
+                  fontSize: 12,
+                  border: '1px solid #EAEAEA',
+                  borderRadius: 6,
+                  background: '#FFFFFF',
+                }}
+              />
+              <Bar dataKey="count" radius={[0, 3, 3, 0]}>
                 {leadFunnel.map((entry, i) => (
-                  <Cell key={i} fill={FUNNEL_COLORS[entry.status] ?? '#94a3b8'} />
+                  <Cell key={i} fill={FUNNEL_COLORS[entry.status] ?? '#A3A3A3'} />
                 ))}
               </Bar>
             </BarChart>
@@ -116,14 +167,23 @@ export default function AnalyticsCharts({ messagesPerDay, channelBreakdown, lead
         ) : (
           <EmptyState label="No contacts yet" />
         )}
-      </div>
+      </Card>
+    </div>
+  );
+}
+
+function Card({ title, children, className = '' }: { title: string; children: React.ReactNode; className?: string }) {
+  return (
+    <div className={`rounded-lg border border-[#EAEAEA] bg-white p-5 ${className}`}>
+      <h3 className="text-[13px] font-medium text-[#0A0A0A] mb-4">{title}</h3>
+      {children}
     </div>
   );
 }
 
 function EmptyState({ label }: { label: string }) {
   return (
-    <div className="h-48 flex items-center justify-center text-slate-400 text-sm">
+    <div className="h-44 flex items-center justify-center text-[#A3A3A3] text-[13px]">
       {label}
     </div>
   );

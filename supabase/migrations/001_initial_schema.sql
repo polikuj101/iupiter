@@ -127,13 +127,13 @@ CREATE TABLE crm_integrations (
 CREATE OR REPLACE FUNCTION get_messages_per_day(p_org_id UUID, p_days INTEGER DEFAULT 30)
 RETURNS TABLE(day DATE, count BIGINT)
 LANGUAGE sql STABLE AS $$
-  SELECT DATE(created_at), COUNT(*)
+  SELECT DATE(created_at) AS day, COUNT(*) AS count
   FROM messages
   WHERE org_id = p_org_id
     AND role = 'user'
     AND created_at > now() - (p_days || ' days')::INTERVAL
   GROUP BY DATE(created_at)
-  ORDER BY day;
+  ORDER BY DATE(created_at);
 $$;
 
 CREATE OR REPLACE FUNCTION get_channel_breakdown(p_org_id UUID)
