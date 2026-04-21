@@ -122,76 +122,109 @@ function HeroSection({ isLoggedIn }: { isLoggedIn: boolean }) {
 }
 
 function BrowserMockup() {
+  const DURATION = '10s';
+  const EASING   = 'ease-in-out';
+  const ITER     = 'infinite';
+
   return (
-    <div className="relative w-full max-w-lg mx-auto lg:max-w-none bg-white rounded-xl border border-[#EAEAEA] overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.04),0_10px_30px_-10px_rgba(0,0,0,0.1)]">
+    <div className="relative w-full max-w-lg mx-auto lg:max-w-none bg-white rounded-2xl border border-[#EAEAEA] overflow-hidden shadow-[0_2px_8px_rgba(0,0,0,0.05),0_20px_48px_-16px_rgba(0,0,0,0.1)]">
+
       {/* Window chrome */}
       <div className="flex items-center px-4 py-3 bg-[#FAFAF9] border-b border-[#EAEAEA]">
         <div className="flex space-x-1.5">
-          <div className="w-2.5 h-2.5 bg-[#E5E5E5] rounded-full" />
-          <div className="w-2.5 h-2.5 bg-[#E5E5E5] rounded-full" />
-          <div className="w-2.5 h-2.5 bg-[#E5E5E5] rounded-full" />
+          <div className="w-2.5 h-2.5 bg-[#FF5F57] rounded-full" />
+          <div className="w-2.5 h-2.5 bg-[#FFBD2E] rounded-full" />
+          <div className="w-2.5 h-2.5 bg-[#28C840] rounded-full" />
         </div>
         <div className="flex-1 flex justify-center">
-          <div className="bg-white border border-[#EAEAEA] rounded py-1 px-3 text-[11px] text-[#A3A3A3]">
+          <div className="bg-white border border-[#EAEAEA] rounded-md py-1 px-4 text-[11px] text-[#A3A3A3] flex items-center gap-1.5">
+            <svg className="w-2.5 h-2.5 text-[#C4C4C4]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
             iupiter.app/inbox
           </div>
         </div>
-        <div className="w-10" />
+        <div className="w-14" />
       </div>
 
-      <div className="p-6 h-[460px] flex flex-col bg-white">
+      {/* Chat body */}
+      <div className="p-6 h-[420px] flex flex-col bg-white select-none">
+
+        {/* Header */}
         <div className="flex items-center justify-between pb-4 border-b border-[#F5F5F4] mb-5">
           <div className="flex items-center gap-2">
-            <MessageCircle className="w-4 h-4 text-[#737373]" />
-            <h3 className="text-sm font-medium text-[#0A0A0A]">Recent inquiries</h3>
+            <MessageCircle className="w-4 h-4 text-[#A3A3A3]" />
+            <span className="text-[13px] font-medium text-[#0A0A0A]">Recent inquiries</span>
           </div>
-          <div className="flex items-center gap-1.5 text-[11px] text-[#16A34A]">
-            <div className="w-1.5 h-1.5 rounded-full bg-[#16A34A] animate-pulse" />
+          <div className="flex items-center gap-1.5 text-[11px] text-[#16A34A] font-medium">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#16A34A] animate-pulse" />
             AI active
           </div>
         </div>
 
-        <div className="flex-1 space-y-5">
-          {/* Customer message */}
-          <div className="flex gap-3">
-            <div className="w-8 h-8 rounded-full bg-[#F5F5F4] flex-shrink-0 flex items-center justify-center text-[11px] font-medium text-[#525252] border border-[#EAEAEA]">
+        <div className="flex-1 flex flex-col gap-4 overflow-hidden">
+
+          {/* Step 1 — Customer message */}
+          <div
+            className="flex gap-3"
+            style={{ animation: `demoMsg ${DURATION} ${EASING} ${ITER}` }}
+          >
+            <div className="w-8 h-8 rounded-full bg-[#F5F5F4] flex-shrink-0 flex items-center justify-center text-[11px] font-semibold text-[#525252] border border-[#EAEAEA]">
               SJ
             </div>
             <div>
-              <p className="text-[11px] text-[#737373] mb-1">Sarah Jenkins</p>
-              <div className="bg-[#FAFAF9] text-[#0A0A0A] rounded-lg px-3 py-2.5 text-[13px] leading-relaxed max-w-[85%]">
+              <p className="text-[11px] text-[#737373] mb-1 font-medium">Sarah Jenkins</p>
+              <div className="bg-[#FAFAF9] border border-[#EAEAEA] text-[#0A0A0A] rounded-xl rounded-tl-sm px-3.5 py-2.5 text-[13px] leading-relaxed max-w-[88%]">
                 Hi! Is the 3-bed property in East Austin still available for viewing this weekend?
               </div>
             </div>
           </div>
 
-          {/* Typing */}
-          <div className="flex gap-3 items-center animate-[fadeIn_0.5s_ease-out_1s_both]">
+          {/* Step 2 — AI typing */}
+          <div
+            className="flex gap-3 items-start"
+            style={{ animation: `demoTyping ${DURATION} ${EASING} ${ITER}` }}
+          >
             <div className="w-8 h-8 rounded-full bg-[#0A0A0A] flex-shrink-0 flex items-center justify-center">
               <Zap className="w-3.5 h-3.5 text-white" />
             </div>
-            <div className="bg-[#FAFAF9] rounded-lg px-3 py-2.5">
-              <TypingDots />
+            <div>
+              <p className="text-[11px] text-[#737373] mb-1 font-medium">Iupiter AI</p>
+              <div className="flex items-center gap-2.5">
+                <div className="bg-[#FAFAF9] border border-[#EAEAEA] rounded-xl rounded-tl-sm px-4 py-3">
+                  <TypingDots />
+                </div>
+                <span className="text-[11px] text-[#A3A3A3]">Iupiter AI is typing…</span>
+              </div>
             </div>
           </div>
 
-          {/* AI response */}
-          <div className="flex gap-3 justify-end animate-[fadeIn_0.5s_ease-out_2.5s_both]">
-            <div className="flex flex-col items-end max-w-[85%]">
-              <p className="text-[11px] text-[#737373] mb-1 mr-1">Draft response</p>
-              <div className="bg-[#0A0A0A] text-white rounded-lg px-3 py-2.5 text-[13px] leading-relaxed">
+          {/* Step 3 — AI response */}
+          <div
+            className="flex justify-end"
+            style={{ animation: `demoReply ${DURATION} ${EASING} ${ITER}` }}
+          >
+            <div className="flex flex-col items-end max-w-[88%]">
+              <p className="text-[11px] text-[#737373] mb-1 font-medium">Draft response</p>
+              <div className="bg-[#0A0A0A] text-white rounded-xl rounded-tr-sm px-3.5 py-2.5 text-[13px] leading-relaxed">
                 Hi Sarah! Yes, 1245 East Ave is still available. We have an open house this Saturday 1–3 PM. Would you like a private slot before then?
               </div>
-              <div className="flex items-center gap-2 mt-2.5">
-                <button className="text-[11px] text-[#525252] border border-[#EAEAEA] px-3 py-1.5 rounded hover:bg-[#F5F5F4] transition-colors">
-                  Edit
-                </button>
-                <button className="text-[11px] text-white bg-[#16A34A] px-3 py-1.5 rounded hover:bg-[#15803D] transition-colors">
-                  Approve & send
-                </button>
+
+              {/* Step 4 — Action buttons */}
+              <div
+                className="flex items-center gap-2 mt-2.5"
+                style={{ animation: `demoActions ${DURATION} ${EASING} ${ITER}` }}
+              >
+                <div className="text-[11px] font-medium text-[#525252] border border-[#EAEAEA] bg-white px-3 py-1.5 rounded-md cursor-default">
+                  Edit response
+                </div>
+                <div className="text-[11px] font-medium text-white bg-[#16A34A] px-3 py-1.5 rounded-md cursor-default">
+                  Approve &amp; send
+                </div>
               </div>
             </div>
           </div>
+
         </div>
       </div>
     </div>
@@ -200,10 +233,14 @@ function BrowserMockup() {
 
 function TypingDots() {
   return (
-    <div className="flex gap-1 items-center h-3">
-      <span className="w-1 h-1 bg-[#A3A3A3] rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-      <span className="w-1 h-1 bg-[#A3A3A3] rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-      <span className="w-1 h-1 bg-[#A3A3A3] rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+    <div className="flex gap-1.5 items-center h-3">
+      {[0, 200, 400].map((delay) => (
+        <span
+          key={delay}
+          className="w-1.5 h-1.5 bg-[#A3A3A3] rounded-full"
+          style={{ animation: `typingDot 1.2s ease-in-out ${delay}ms infinite` }}
+        />
+      ))}
     </div>
   );
 }

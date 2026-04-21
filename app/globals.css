@@ -49,14 +49,44 @@
 }
 
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Demo mockup step-by-step animation (10s loop) ── */
+
+/* Step 1: Customer message */
+@keyframes demoMsg {
+  0%,  8%  { opacity: 0; transform: translateY(6px); }
+  16%, 76% { opacity: 1; transform: translateY(0); }
+  88%, 100%{ opacity: 0; transform: translateY(0); }
+}
+
+/* Step 2: Typing indicator */
+@keyframes demoTyping {
+  0%,  24% { opacity: 0; }
+  32%, 40% { opacity: 1; }
+  48%, 100%{ opacity: 0; }
+}
+
+/* Step 3: AI response bubble */
+@keyframes demoReply {
+  0%,  40% { opacity: 0; transform: translateY(6px); }
+  52%, 76% { opacity: 1; transform: translateY(0); }
+  88%, 100%{ opacity: 0; transform: translateY(0); }
+}
+
+/* Step 4: Action buttons */
+@keyframes demoActions {
+  0%,  52% { opacity: 0; transform: translateY(4px); }
+  60%, 76% { opacity: 1; transform: translateY(0); }
+  88%, 100%{ opacity: 0; transform: translateY(0); }
+}
+
+/* Typing dots bounce */
+@keyframes typingDot {
+  0%, 60%, 100% { transform: translateY(0); }
+  30%           { transform: translateY(-4px); }
 }
 
 :root {
