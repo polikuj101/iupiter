@@ -37,16 +37,22 @@ export default function TestChatPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ history: updated }),
       });
-      const data = await res.json();
+      let data: { reply?: string; error?: string };
+      try {
+        data = await res.json();
+      } catch {
+        throw new Error(`Server returned non-JSON (status ${res.status}). Check Vercel logs.`);
+      }
       if (!res.ok || data.error) {
         throw new Error(data.error || `HTTP ${res.status}`);
       }
-      setMessages([...updated, { role: 'assistant', content: data.reply }]);
+      const reply = data.reply?.trim() || '(empty response — check GOOGLE_API_KEY on Vercel)';
+      setMessages([...updated, { role: 'assistant', content: reply }]);
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Unknown error';
       setMessages([...updated, {
         role: 'assistant',
-        content: `Error: ${msg}`,
+        content: `⚠️ ${msg}`,
       }]);
     } finally {
       setLoading(false);
