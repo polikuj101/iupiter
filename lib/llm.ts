@@ -44,7 +44,7 @@ export async function generateReply(
   history: { role: 'user' | 'assistant'; content: string }[],
   options?: LLMOptions
 ): Promise<LLMResponse> {
-  const modelName = options?.model || process.env.GOOGLE_MODEL || 'gemini-2.0-flash';
+  const modelName = options?.model || process.env.GOOGLE_MODEL || 'gemini-2.5-flash';
 
   const model = genAI.getGenerativeModel({ model: modelName });
 
