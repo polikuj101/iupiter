@@ -98,7 +98,7 @@ export default function NewAgentPage() {
         name: form.name || 'My Agent',
         business_context: form.businessContext,
         system_prompt: form.systemPrompt,
-        llm_model: 'gemini-2.5-flash',
+        llm_model: 'gemini-2.0-flash',
         temperature: 0.7,
         max_tokens: 300,
       }),
