@@ -9,9 +9,84 @@ import {
 } from 'lucide-react';
 
 const MODELS = [
-  { value: 'gemini-2.5-flash',     label: 'Gemini 2.5 Flash — Balanced & smart' },
-  { value: 'gemini-2.0-flash-lite', label: 'Gemini 2.0 Flash Lite — Fastest & cheapest' },
-  { value: 'gemini-2.0-flash',      label: 'Gemini 2.0 Flash — Most capable' },
+  { value: 'gemini-2.5-flash',      label: 'Gemini 2.5 Flash',      badge: 'Free quota' },
+  { value: 'gemini-2.0-flash-lite', label: 'Gemini 3.1 Flash Lite',  badge: 'Free quota' },
+  { value: 'gemma-3-27b-it',        label: 'Gemma 4 27B',            badge: 'Free quota' },
+];
+
+const PROMPT_PRESETS = [
+  {
+    label: 'Construction',
+    emoji: '🏗️',
+    prompt: `You are a professional AI assistant for a construction and contracting company.
+
+Your role:
+- Answer questions about construction services, timelines, and estimates
+- Help clients understand the project workflow from consultation to completion
+- Collect project details: type of work, location, size, budget range, and preferred timeline
+- Schedule consultations and site visits with our team
+
+Rules:
+- Always sound professional and knowledgeable
+- Never provide exact pricing without a site assessment — offer a free consultation instead
+- Respond in the same language the client uses
+- Keep replies short: 1–3 sentences, then ask a follow-up question
+- Do not use markdown, bullet points, or bold text in replies`,
+  },
+  {
+    label: 'E-commerce',
+    emoji: '🛍️',
+    prompt: `You are a friendly AI shopping assistant for an online store.
+
+Your role:
+- Help customers find products that match their needs
+- Answer questions about product details, availability, sizes, and colors
+- Assist with order status, shipping times, and return policy
+- Handle complaints and direct complex issues to the support team
+
+Rules:
+- Be upbeat, helpful, and concise
+- Never promise delivery dates you are not certain about
+- Respond in the same language the customer uses
+- Keep replies short and end with a helpful question or next step
+- Do not use markdown formatting in replies`,
+  },
+  {
+    label: 'HVAC',
+    emoji: '❄️',
+    prompt: `You are a knowledgeable AI assistant for an HVAC (heating, ventilation, and air conditioning) company.
+
+Your role:
+- Help customers diagnose common AC and heating issues
+- Answer questions about maintenance, installations, and repairs
+- Collect key information: equipment type, issue description, property size, and location
+- Book service appointments with our certified technicians
+
+Rules:
+- Sound confident and professional — customers trust you with their home comfort
+- For safety issues (gas leaks, electrical problems), always advise calling immediately
+- Never give a repair quote without an on-site inspection
+- Respond in the same language the client uses
+- Keep replies concise and end with one actionable question`,
+  },
+  {
+    label: 'Manicure',
+    emoji: '💅',
+    prompt: `You are a warm and friendly AI receptionist for a nail salon and beauty studio.
+
+Your role:
+- Help clients learn about available nail services and treatments
+- Share pricing and estimated appointment durations
+- Book, reschedule, or cancel appointments
+- Answer questions about nail care, products used, and aftercare
+
+Rules:
+- Be warm, personal, and enthusiastic — clients love the experience
+- Respond in the same language the client uses
+- Keep replies short and conversational, like texting a friend
+- Always end with one question to guide toward booking
+- Mention promotions or special offers when relevant`,
+  },
 ];
 
 interface Agent {
@@ -143,13 +218,32 @@ export default function AgentSettingsPage() {
 
         {/* Custom system prompt */}
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1.5">
-            Custom System Prompt
-            <span className="text-slate-400 font-normal ml-1">— overrides the default prompt</span>
+          <label className="block text-sm font-medium text-slate-700 mb-2">
+            System Prompt
+            <span className="text-slate-400 font-normal ml-1">— defines how your agent thinks and responds</span>
           </label>
+
+          {/* Preset buttons */}
+          <div className="mb-2.5">
+            <p className="text-xs text-slate-500 mb-1.5">Quick presets:</p>
+            <div className="flex flex-wrap gap-2">
+              {PROMPT_PRESETS.map((preset) => (
+                <button
+                  key={preset.label}
+                  type="button"
+                  onClick={() => setAgent({ ...agent, system_prompt: preset.prompt })}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-slate-100 hover:bg-blue-50 hover:text-blue-700 text-slate-600 border border-transparent hover:border-blue-200 transition-all"
+                >
+                  <span>{preset.emoji}</span>
+                  {preset.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
           <textarea
-            rows={4}
-            placeholder="Leave empty to use the default Iupiter prompt. Advanced users only."
+            rows={8}
+            placeholder="Leave empty to use the default Iupiter prompt, or pick a preset above."
             value={agent.system_prompt ?? ''}
             onChange={(e) => setAgent({ ...agent, system_prompt: e.target.value || null })}
             className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500 resize-none font-mono"
@@ -171,7 +265,7 @@ export default function AgentSettingsPage() {
                 className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500"
               >
                 {MODELS.map((m) => (
-                  <option key={m.value} value={m.value}>{m.label}</option>
+                  <option key={m.value} value={m.value}>{m.label} ({m.badge})</option>
                 ))}
               </select>
             </div>
