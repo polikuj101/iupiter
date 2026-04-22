@@ -20,13 +20,18 @@ export async function POST(req: NextRequest, { params }: Params) {
     history: { role: 'user' | 'assistant'; content: string }[];
   };
 
-  const result = await generateReply(history, {
-    systemPrompt:    agent.system_prompt ?? undefined,
-    businessContext: agent.business_context ?? undefined,
-    model:           agent.llm_model,
-    temperature:     agent.temperature,
-    maxTokens:       agent.max_tokens,
-  });
-
-  return NextResponse.json({ reply: result.text });
+  try {
+    const result = await generateReply(history, {
+      systemPrompt:    agent.system_prompt ?? undefined,
+      businessContext: agent.business_context ?? undefined,
+      model:           agent.llm_model,
+      temperature:     agent.temperature,
+      maxTokens:       agent.max_tokens,
+    });
+    return NextResponse.json({ reply: result.text });
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error('[test] generateReply error:', msg);
+    return NextResponse.json({ error: msg }, { status: 500 });
+  }
 }

@@ -38,11 +38,15 @@ export default function TestChatPage() {
         body: JSON.stringify({ history: updated }),
       });
       const data = await res.json();
+      if (!res.ok || data.error) {
+        throw new Error(data.error || `HTTP ${res.status}`);
+      }
       setMessages([...updated, { role: 'assistant', content: data.reply }]);
-    } catch {
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Unknown error';
       setMessages([...updated, {
         role: 'assistant',
-        content: "Something went wrong — check your API keys and try again.",
+        content: `Error: ${msg}`,
       }]);
     } finally {
       setLoading(false);

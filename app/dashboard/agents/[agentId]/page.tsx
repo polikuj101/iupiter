@@ -10,8 +10,8 @@ import {
 
 const MODELS = [
   { value: 'gemini-2.5-flash',     label: 'Gemini 2.5 Flash — Balanced & smart' },
-  { value: 'gemini-3.1-flash-lite', label: 'Gemini 3.1 Flash Lite — Fastest & cheapest' },
-  { value: 'gemini-3-flash',        label: 'Gemini 3 Flash — Most capable' },
+  { value: 'gemini-2.0-flash-lite', label: 'Gemini 2.0 Flash Lite — Fastest & cheapest' },
+  { value: 'gemini-2.0-flash',      label: 'Gemini 2.0 Flash — Most capable' },
 ];
 
 interface Agent {
