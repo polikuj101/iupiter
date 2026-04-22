@@ -27,7 +27,7 @@ export async function POST(req: NextRequest, { params }: Params) {
     const result = await generateReply(history, {
       systemPrompt:    agent.system_prompt    ?? undefined,
       businessContext: agent.business_context ?? undefined,
-      model:           agent.llm_model        ?? 'gemini-2.0-flash',
+      model:           agent.llm_model        ?? 'gemini-2.5-flash',
       temperature:     agent.temperature      ?? 0.7,
       maxTokens:       agent.max_tokens       ?? 300,
     });
