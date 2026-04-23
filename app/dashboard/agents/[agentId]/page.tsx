@@ -5,19 +5,23 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
   ArrowLeft, Save, Trash2, MessageSquare,
-  Bot, Loader2, AlertTriangle,
+  Bot, Loader2, Phone, CheckCircle2, XCircle,
+  ExternalLink, Copy, Check,
 } from 'lucide-react';
 
+// ─── Models with optimal temperatures ────────────────────────────
+
 const MODELS = [
-  { value: 'gemini-2.5-flash',      label: 'Gemini 2.5 Flash',      badge: 'Free quota' },
-  { value: 'gemini-2.0-flash-lite', label: 'Gemini 3.1 Flash Lite',  badge: 'Free quota' },
-  { value: 'gemma-3-27b-it',        label: 'Gemma 4 27B',            badge: 'Free quota' },
+  { value: 'gemini-2.5-flash',             label: 'Gemini 2.5 Flash',      badge: 'Free quota', temp: 0.7 },
+  { value: 'gemini-3.1-flash-lite-preview', label: 'Gemini 3.1 Flash Lite', badge: 'Free quota', temp: 0.5 },
+  { value: 'gemini-2.5-flash-lite',         label: 'Gemini 2.5 Flash Lite', badge: 'Free quota', temp: 0.5 },
 ];
+
+// ─── System prompt presets ────────────────────────────────────────
 
 const PROMPT_PRESETS = [
   {
-    label: 'Construction',
-    emoji: '🏗️',
+    label: 'Construction', emoji: '🏗️',
     prompt: `You are a professional AI assistant for a construction and contracting company.
 
 Your role:
@@ -34,8 +38,7 @@ Rules:
 - Do not use markdown, bullet points, or bold text in replies`,
   },
   {
-    label: 'E-commerce',
-    emoji: '🛍️',
+    label: 'E-commerce', emoji: '🛍️',
     prompt: `You are a friendly AI shopping assistant for an online store.
 
 Your role:
@@ -52,8 +55,7 @@ Rules:
 - Do not use markdown formatting in replies`,
   },
   {
-    label: 'HVAC',
-    emoji: '❄️',
+    label: 'HVAC', emoji: '❄️',
     prompt: `You are a knowledgeable AI assistant for an HVAC (heating, ventilation, and air conditioning) company.
 
 Your role:
@@ -70,8 +72,7 @@ Rules:
 - Keep replies concise and end with one actionable question`,
   },
   {
-    label: 'Manicure',
-    emoji: '💅',
+    label: 'Manicure', emoji: '💅',
     prompt: `You are a warm and friendly AI receptionist for a nail salon and beauty studio.
 
 Your role:
@@ -89,6 +90,8 @@ Rules:
   },
 ];
 
+// ─── Types ────────────────────────────────────────────────────────
+
 interface Agent {
   id: string;
   name: string;
@@ -100,21 +103,56 @@ interface Agent {
   is_active: boolean;
 }
 
+interface WhatsAppChannel {
+  id: string;
+  config: { phone_number_id?: string; whatsapp_token?: string };
+  is_active: boolean;
+  webhook_verified: boolean;
+}
+
+// ─── Page ─────────────────────────────────────────────────────────
+
 export default function AgentSettingsPage() {
   const { agentId } = useParams<{ agentId: string }>();
   const router = useRouter();
 
-  const [agent, setAgent] = useState<Agent | null>(null);
+  const [agent, setAgent]     = useState<Agent | null>(null);
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
+  const [saving, setSaving]   = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const [saved, setSaved] = useState(false);
+  const [saved, setSaved]     = useState(false);
+
+  // WhatsApp state
+  const [waChannel, setWaChannel]       = useState<WhatsAppChannel | null>(null);
+  const [waPhoneId, setWaPhoneId]       = useState('');
+  const [waToken, setWaToken]           = useState('');
+  const [waSaving, setWaSaving]         = useState(false);
+  const [waDisconnecting, setWaDisc]    = useState(false);
+  const [waSaved, setWaSaved]           = useState(false);
+  const [copied, setCopied]             = useState(false);
 
   useEffect(() => {
     fetch(`/api/agents/${agentId}`)
-      .then((r) => r.json())
-      .then((data) => { setAgent(data); setLoading(false); });
+      .then(r => r.json())
+      .then(data => { setAgent(data); setLoading(false); });
+
+    fetch(`/api/agents/${agentId}/channels`)
+      .then(r => r.json())
+      .then((channels: WhatsAppChannel[]) => {
+        const wa = channels.find(c => (c as unknown as { platform: string }).platform === 'whatsapp');
+        if (wa) {
+          setWaChannel(wa);
+          setWaPhoneId(wa.config.phone_number_id ?? '');
+          setWaToken(wa.config.whatsapp_token ?? '');
+        }
+      });
   }, [agentId]);
+
+  // When model changes → apply optimal temperature
+  const handleModelChange = (value: string) => {
+    const model = MODELS.find(m => m.value === value);
+    setAgent(a => a ? { ...a, llm_model: value, temperature: model?.temp ?? a.temperature } : a);
+  };
 
   const handleSave = async () => {
     if (!agent) return;
@@ -136,18 +174,60 @@ export default function AgentSettingsPage() {
     router.push('/dashboard/agents');
   };
 
+  const handleWaSave = async () => {
+    if (!waPhoneId.trim() || !waToken.trim()) return;
+    setWaSaving(true);
+    const res = await fetch(`/api/agents/${agentId}/channels`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        platform: 'whatsapp',
+        config: { phone_number_id: waPhoneId.trim(), whatsapp_token: waToken.trim() },
+      }),
+    });
+    const data = await res.json();
+    if (res.ok) { setWaChannel(data); setWaSaved(true); setTimeout(() => setWaSaved(false), 2500); }
+    setWaSaving(false);
+  };
+
+  const handleWaDisconnect = async () => {
+    if (!confirm('Disconnect WhatsApp? The agent will stop responding to WhatsApp messages.')) return;
+    setWaDisc(true);
+    await fetch(`/api/agents/${agentId}/channels`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ platform: 'whatsapp' }),
+    });
+    setWaChannel(null);
+    setWaPhoneId('');
+    setWaToken('');
+    setWaDisc(false);
+  };
+
+  const webhookUrl = typeof window !== 'undefined'
+    ? `${window.location.origin}/api/webhook/meta`
+    : 'https://iupiter.vercel.app/api/webhook/meta';
+
+  const copyWebhook = () => {
+    navigator.clipboard.writeText(webhookUrl);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
   if (loading) return (
     <div className="flex items-center justify-center h-64">
       <Loader2 className="w-6 h-6 text-blue-500 animate-spin" />
     </div>
   );
-
   if (!agent) return (
     <div className="text-center py-16 text-slate-500">Agent not found.</div>
   );
 
+  const currentModel = MODELS.find(m => m.value === agent.llm_model);
+
   return (
     <div className="max-w-2xl mx-auto space-y-6">
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -171,7 +251,7 @@ export default function AgentSettingsPage() {
         </Link>
       </div>
 
-      {/* Status */}
+      {/* Status toggle */}
       <div className="flex items-center gap-3 bg-white rounded-xl border border-slate-200 p-4">
         <span className="text-sm font-medium text-slate-700">Agent Status</span>
         <button
@@ -189,14 +269,15 @@ export default function AgentSettingsPage() {
         </span>
       </div>
 
-      {/* Main form */}
+      {/* ── Main form ── */}
       <div className="bg-white rounded-2xl border border-slate-200 p-6 space-y-5">
+
         {/* Name */}
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1.5">Agent Name</label>
           <input
             value={agent.name}
-            onChange={(e) => setAgent({ ...agent, name: e.target.value })}
+            onChange={e => setAgent({ ...agent, name: e.target.value })}
             className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
@@ -211,49 +292,44 @@ export default function AgentSettingsPage() {
             rows={6}
             placeholder="Describe your business: name, services, prices, hours, location, FAQs..."
             value={agent.business_context ?? ''}
-            onChange={(e) => setAgent({ ...agent, business_context: e.target.value })}
+            onChange={e => setAgent({ ...agent, business_context: e.target.value })}
             className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500 resize-none"
           />
         </div>
 
-        {/* Custom system prompt */}
+        {/* System Prompt with presets */}
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-2">
             System Prompt
             <span className="text-slate-400 font-normal ml-1">— defines how your agent thinks and responds</span>
           </label>
-
-          {/* Preset buttons */}
           <div className="mb-2.5">
             <p className="text-xs text-slate-500 mb-1.5">Quick presets:</p>
             <div className="flex flex-wrap gap-2">
-              {PROMPT_PRESETS.map((preset) => (
+              {PROMPT_PRESETS.map(preset => (
                 <button
                   key={preset.label}
                   type="button"
                   onClick={() => setAgent({ ...agent, system_prompt: preset.prompt })}
                   className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-slate-100 hover:bg-blue-50 hover:text-blue-700 text-slate-600 border border-transparent hover:border-blue-200 transition-all"
                 >
-                  <span>{preset.emoji}</span>
-                  {preset.label}
+                  <span>{preset.emoji}</span>{preset.label}
                 </button>
               ))}
             </div>
           </div>
-
           <textarea
             rows={8}
-            placeholder="Leave empty to use the default Iupiter prompt, or pick a preset above."
+            placeholder="Leave empty to use the default prompt, or pick a preset above."
             value={agent.system_prompt ?? ''}
-            onChange={(e) => setAgent({ ...agent, system_prompt: e.target.value || null })}
+            onChange={e => setAgent({ ...agent, system_prompt: e.target.value || null })}
             className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500 resize-none font-mono"
           />
         </div>
 
-        {/* Divider */}
         <hr className="border-slate-100" />
 
-        {/* LLM Settings */}
+        {/* AI Model Settings */}
         <div>
           <h3 className="text-sm font-semibold text-slate-900 mb-3">AI Model Settings</h3>
           <div className="space-y-4">
@@ -261,46 +337,163 @@ export default function AgentSettingsPage() {
               <label className="block text-sm font-medium text-slate-700 mb-1.5">Model</label>
               <select
                 value={agent.llm_model}
-                onChange={(e) => setAgent({ ...agent, llm_model: e.target.value })}
+                onChange={e => handleModelChange(e.target.value)}
                 className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500"
               >
-                {MODELS.map((m) => (
-                  <option key={m.value} value={m.value}>{m.label} ({m.badge})</option>
+                {MODELS.map(m => (
+                  <option key={m.value} value={m.value}>
+                    {m.label} — {m.badge} (optimal temp: {m.temp})
+                  </option>
                 ))}
               </select>
+              {currentModel && (
+                <p className="text-xs text-slate-400 mt-1">
+                  Temperature auto-set to <span className="font-semibold text-slate-600">{currentModel.temp}</span> — optimal for this model
+                </p>
+              )}
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                  Temperature
-                </label>
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">Temperature</label>
                 <div className="flex items-center gap-3">
                   <input
                     type="range" min="0" max="1" step="0.1"
                     value={agent.temperature}
-                    onChange={(e) => setAgent({ ...agent, temperature: parseFloat(e.target.value) })}
+                    onChange={e => setAgent({ ...agent, temperature: parseFloat(e.target.value) })}
                     className="flex-1"
                   />
                   <span className="text-sm font-mono text-slate-600 w-8">{agent.temperature}</span>
                 </div>
                 <div className="flex justify-between text-xs text-slate-400 mt-1">
-                  <span>Precise</span>
-                  <span>Creative</span>
+                  <span>Precise</span><span>Creative</span>
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                  Max Tokens
-                </label>
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">Max Tokens</label>
                 <input
                   type="number" min="50" max="1000" step="50"
                   value={agent.max_tokens}
-                  onChange={(e) => setAgent({ ...agent, max_tokens: parseInt(e.target.value) })}
+                  onChange={e => setAgent({ ...agent, max_tokens: parseInt(e.target.value) })}
                   className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
             </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ── WhatsApp Integration ── */}
+      <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-lg bg-green-50 flex items-center justify-center">
+              <Phone className="w-4 h-4 text-green-600" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-slate-900">WhatsApp Business</p>
+              <p className="text-xs text-slate-500">Agent responds to messages & saves contacts automatically</p>
+            </div>
+          </div>
+          {waChannel ? (
+            <span className="inline-flex items-center gap-1.5 text-xs font-medium text-green-700 bg-green-50 border border-green-200 px-2.5 py-1 rounded-full">
+              <CheckCircle2 className="w-3.5 h-3.5" /> Connected
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-500 bg-slate-100 px-2.5 py-1 rounded-full">
+              <XCircle className="w-3.5 h-3.5" /> Not connected
+            </span>
+          )}
+        </div>
+
+        <div className="p-6 space-y-4">
+          {/* Webhook URL */}
+          <div>
+            <label className="block text-xs font-medium text-slate-500 mb-1.5 uppercase tracking-wide">
+              Webhook URL — paste this in Meta Developer Console
+            </label>
+            <div className="flex items-center gap-2">
+              <div className="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs font-mono text-slate-600 truncate">
+                {webhookUrl}
+              </div>
+              <button
+                onClick={copyWebhook}
+                className="flex items-center gap-1.5 px-3 py-2 border border-slate-200 rounded-lg text-xs text-slate-600 hover:bg-slate-50 transition-colors"
+              >
+                {copied ? <Check className="w-3.5 h-3.5 text-green-600" /> : <Copy className="w-3.5 h-3.5" />}
+                {copied ? 'Copied' : 'Copy'}
+              </button>
+            </div>
+          </div>
+
+          {/* Credentials */}
+          <div className="grid grid-cols-1 gap-3">
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                Phone Number ID
+                <a
+                  href="https://developers.facebook.com/apps"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="ml-2 text-blue-500 hover:text-blue-700 inline-flex items-center gap-0.5"
+                >
+                  <ExternalLink className="w-3 h-3" /> Meta Console
+                </a>
+              </label>
+              <input
+                value={waPhoneId}
+                onChange={e => setWaPhoneId(e.target.value)}
+                placeholder="123456789012345"
+                className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-green-500 font-mono"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                Access Token (WhatsApp)
+              </label>
+              <input
+                type="password"
+                value={waToken}
+                onChange={e => setWaToken(e.target.value)}
+                placeholder="EAABsbCS..."
+                className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-green-500 font-mono"
+              />
+            </div>
+          </div>
+
+          {/* How it works */}
+          <div className="rounded-lg bg-green-50 border border-green-100 px-4 py-3 text-xs text-green-800 space-y-1">
+            <p className="font-semibold">How it works after connecting:</p>
+            <p>1. Customer sends a message to your WhatsApp number</p>
+            <p>2. Agent replies automatically using your system prompt</p>
+            <p>3. Contact is saved to your Contacts dashboard with lead status</p>
+            <p>4. Full conversation history is stored in Conversations</p>
+          </div>
+
+          {/* Buttons */}
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleWaSave}
+              disabled={waSaving || !waPhoneId.trim() || !waToken.trim()}
+              className="flex items-center gap-2 bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white px-4 py-2.5 rounded-lg text-sm font-medium transition-colors"
+            >
+              {waSaving
+                ? <><Loader2 className="w-4 h-4 animate-spin" /> Saving…</>
+                : waSaved
+                ? <><Check className="w-4 h-4" /> Saved!</>
+                : <><Phone className="w-4 h-4" /> {waChannel ? 'Update connection' : 'Connect WhatsApp'}</>
+              }
+            </button>
+            {waChannel && (
+              <button
+                onClick={handleWaDisconnect}
+                disabled={waDisconnecting}
+                className="text-sm text-red-500 hover:text-red-700 font-medium transition-colors disabled:opacity-50"
+              >
+                {waDisconnecting ? 'Disconnecting…' : 'Disconnect'}
+              </button>
+            )}
           </div>
         </div>
       </div>
