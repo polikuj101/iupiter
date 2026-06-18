@@ -4,9 +4,16 @@ import type { NextRequest } from 'next/server';
 // Routes that do NOT require authentication
 const publicRoutes = createRouteMatcher([
   '/',
+  '/dentist',
   '/sign-in(.*)',
   '/sign-up(.*)',
-  '/api/webhook/meta', // Meta must reach this without auth
+  '/api/webhook(.*)',
+  '/api/lead',
+  '/widget(.*)',
+  '/api/widget(.*)',
+  '/demo(.*)',
+  '/api/demo(.*)',
+  '/api/auth/google/callback',
 ]);
 
 // In Next.js 16, the file is proxy.ts and the export is named `proxy`
