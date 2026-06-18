@@ -2,295 +2,148 @@ export const dynamic = 'force-dynamic';
 import React from 'react';
 import Link from 'next/link';
 import { auth } from '@clerk/nextjs/server';
-import { 
-  ArrowRight, PlayCircle, Zap, MessageCircle,
-  Building2, UploadCloud, Rocket, Clock, 
-  TrendingUp, CalendarCheck, Target, HeartHandshake
-} from 'lucide-react';
+import { ArrowRight, Zap, Building2, Rocket, TrendingUp, CalendarCheck, Target, HeartHandshake } from 'lucide-react';
+import LiveDemoWidget from '@/app/components/LiveDemoWidget';
+import HeroPhone from '@/app/components/HeroPhone';
+import LandingNav from '@/app/components/LandingNav';
 
 export default async function HomePage() {
   const { userId } = await auth();
   const isLoggedIn = !!userId;
-
   return (
-    <main className="min-h-screen bg-[#FAFBFC] font-sans text-[#1F2937]">
-      <Navigation isLoggedIn={isLoggedIn} />
+    <main className="min-h-screen overflow-x-hidden" style={{ background: 'var(--ink)', color: 'var(--text-primary)', fontFamily: 'var(--font-body)' }}>
+      <LandingNav isLoggedIn={isLoggedIn} />
       <HeroSection isLoggedIn={isLoggedIn} />
+      <Marquee />
       <HowItWorksSection />
       <FeaturesSection />
+      <PricingSection />
       <DemoSection />
-      <CtaFooterSection isLoggedIn={isLoggedIn} />
+      <FooterCta isLoggedIn={isLoggedIn} />
     </main>
   );
 }
 
-function Navigation({ isLoggedIn }: { isLoggedIn: boolean }) {
-  return (
-    <nav className="fixed top-0 w-full z-50 backdrop-blur-md bg-white/80 border-b border-gray-100">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-20">
-          {/* Logo */}
-          <div className="flex-shrink-0 flex items-center">
-            <Link href="/" className="text-2xl font-bold text-[#2563EB] tracking-tight">
-              Iupiter
-            </Link>
-          </div>
+/* ─── Shared primitives ─────────────────────────────────────── */
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8">
-            <Link
-              href="#how-it-works"
-              className="text-sm font-medium text-[#1F2937] hover:text-[#2563EB] transition-colors"
-            >
-              How It Works
-            </Link>
-            <Link
-              href="#demo"
-              className="text-sm font-medium text-[#1F2937] hover:text-[#2563EB] transition-colors"
-            >
-              Live Demo
-            </Link>
-            <div className="flex items-center space-x-4 pl-4">
-              {isLoggedIn ? (
-                <Link
-                  href="/dashboard"
-                  className="text-sm font-medium text-white bg-[#2563EB] px-5 py-2.5 rounded-lg hover:bg-blue-700 shadow-sm hover:shadow-md transition-all"
-                >
-                  Dashboard
-                </Link>
-              ) : (
-                <>
-                  <Link
-                    href="/sign-in"
-                    className="text-sm font-medium text-[#1F2937] px-5 py-2.5 rounded-lg border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-all"
-                  >
-                    Login
-                  </Link>
-                  <Link
-                    href="/sign-up"
-                    className="text-sm font-medium text-white bg-[#2563EB] px-5 py-2.5 rounded-lg hover:bg-blue-700 shadow-sm hover:shadow-md transition-all"
-                  >
-                    Start Free Trial
-                  </Link>
-                </>
-              )}
-            </div>
-          </div>
+const LINE   = 'rgba(255,255,255,0.10)';
+const STRONG = 'rgba(255,255,255,0.18)';
+const ACCENT = '#C8FF34';
+const AINK   = '#16210A';
+const MUTED  = '#9B9B96';
+const MUTED2 = '#6E6E69';
+const GREEN  = '#2FBF71';
+const INK2   = '#141416';
+const INK3   = '#1C1C1F';
 
-          {/* Mobile menu button */}
-          <div className="md:hidden flex items-center">
-            <button className="text-gray-600 hover:text-gray-900 focus:outline-none">
-              <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            </button>
-          </div>
-        </div>
-      </div>
-    </nav>
-  );
-}
+/* ─── Hero ──────────────────────────────────────────────────── */
 
 function HeroSection({ isLoggedIn }: { isLoggedIn: boolean }) {
   return (
-    <section className="pt-32 pb-20 px-4 sm:px-6 lg:px-8 overflow-hidden bg-[#FAFBFC]">
-      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-        <HeroContent isLoggedIn={isLoggedIn} />
-        <BrowserMockup />
+    <section style={{ position: 'relative', isolation: 'isolate' }}>
+      {/* Ambient glow */}
+      <div style={{ position: 'absolute', top: '-30%', right: '-10%', width: '70vw', height: '70vw', maxWidth: 980, maxHeight: 980, background: 'radial-gradient(circle at center,rgba(200,255,52,0.10),rgba(200,255,52,0) 60%)', zIndex: -1, pointerEvents: 'none' }} />
+      {/* Grid */}
+      <div style={{ position: 'absolute', inset: 0, backgroundImage: `linear-gradient(${LINE} 1px,transparent 1px),linear-gradient(90deg,${LINE} 1px,transparent 1px)`, backgroundSize: '64px 64px', WebkitMaskImage: 'radial-gradient(circle at 75% 20%,#000,transparent 70%)', maskImage: 'radial-gradient(circle at 75% 20%,#000,transparent 70%)', opacity: 0.5, zIndex: -1, pointerEvents: 'none' }} />
+
+      <div style={{ maxWidth: 1280, margin: '0 auto', padding: 'clamp(32px,4vw,56px) clamp(20px,4vw,64px) clamp(40px,5vw,72px)', display: 'grid', gridTemplateColumns: '1.05fr 0.95fr', gap: 'clamp(32px,5vw,80px)', alignItems: 'center' }} className="hero-grid">
+
+        {/* Copy */}
+        <div>
+          {/* Eyebrow */}
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 10, padding: '7px 14px 7px 9px', border: `1px solid ${STRONG}`, borderRadius: 100, fontSize: 13.5, fontWeight: 500, color: MUTED, marginBottom: 28, background: 'rgba(255,255,255,0.02)' }}>
+            <span style={{ width: 8, height: 8, borderRadius: '50%', background: GREEN, boxShadow: '0 0 0 4px rgba(47,191,113,0.18)', display: 'inline-block', animation: 'pulse 2s infinite' }} />
+            AI receptionist for your business
+          </div>
+
+          <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 'clamp(42px,5.6vw,76px)', lineHeight: 0.98, letterSpacing: '-0.035em', color: '#F4F3EE', textWrap: 'balance', margin: 0 }}>
+            Every lead, answered in{' '}
+            <em style={{ fontStyle: 'normal', color: ACCENT }}>under 2 seconds.</em>
+          </h1>
+
+          <p style={{ marginTop: 26, fontSize: 'clamp(17px,1.4vw,19.5px)', lineHeight: 1.55, color: MUTED, maxWidth: '30ch' }}>
+            Iupiter is the AI receptionist for real estate. It texts back instantly, qualifies the buyer, and books the showing —{' '}
+            <strong style={{ color: 'var(--text-primary)', fontWeight: 600 }}>while your competition is still checking voicemail.</strong>
+          </p>
+
+          {/* CTAs */}
+          <div style={{ marginTop: 38, display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
+            <Link href={isLoggedIn ? '/dashboard' : '/sign-up'} style={{ background: ACCENT, color: AINK, fontWeight: 700, fontSize: 16.5, padding: '16px 28px', borderRadius: 12, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 9, boxShadow: '0 8px 30px rgba(200,255,52,0.22)', whiteSpace: 'nowrap' }}>
+              Build your agent — free <ArrowRight size={17} />
+            </Link>
+            <Link href="#demo" style={{ color: 'var(--text-primary)', border: `1px solid ${STRONG}`, borderRadius: 12, padding: '16px 28px', textDecoration: 'none', fontSize: 16.5, fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 9, whiteSpace: 'nowrap' }}>
+              <svg width={16} height={16} viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+              Try it
+            </Link>
+          </div>
+
+          {/* Reassurances */}
+          <div style={{ marginTop: 18, display: 'flex', alignItems: 'center', gap: 18, color: MUTED2, fontSize: 13.5, flexWrap: 'wrap' }}>
+            {['No credit card', 'Live in 10 minutes', 'Cancel anytime'].map(t => (
+              <span key={t}>{t}</span>
+            ))}
+          </div>
+
+        </div>
+
+        {/* Phone */}
+        <HeroPhone />
       </div>
+
+      <style>{`
+        @media(max-width:980px){.hero-grid{grid-template-columns:1fr!important;gap:44px!important}}
+      `}</style>
     </section>
   );
 }
 
-function HeroContent({ isLoggedIn }: { isLoggedIn: boolean }) {
+/* ─── Marquee ───────────────────────────────────────────────── */
+
+function Marquee() {
+  const items = ['Answers in under 2 seconds','Qualifies every buyer','Books showings 24/7','Never misses a lead','Works while you sleep'];
+  const doubled = [...items, ...items];
   return (
-    <div className="space-y-8 z-10 text-center lg:text-left">
-      {/* Badge */}
-      <div className="inline-flex items-center rounded-full px-4 py-2 text-sm font-medium text-[#2563EB] bg-[#EBF5FF]">
-        <span>Now available for Instagram DMs</span>
-      </div>
-
-      {/* Headline with gradient */}
-      <h1 className="text-5xl lg:text-[64px] font-bold leading-[1.1] tracking-tight text-[#1F2937]">
-        Your AI agent that <br className="hidden lg:block" />
-        <span className="bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">
-          never sleeps
-        </span>
-      </h1>
-
-      {/* Subheadline */}
-      <p className="text-[20px] text-gray-600 leading-[1.6] max-w-2xl mx-auto lg:mx-0">
-        Build an AI receptionist for your business in minutes. It answers clients 24/7, books appointments, and never misses a lead — while you sleep.
-      </p>
-
-      {/* CTAs */}
-      <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start pt-2">
-        <Link
-          href={isLoggedIn ? "/dashboard" : "/sign-up"}
-          className="inline-flex justify-center items-center gap-2 px-6 py-3.5 text-base font-medium text-white bg-[#2563EB] hover:bg-blue-700 rounded-lg shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md"
-        >
-          Build Your Agent
-          <ArrowRight className="w-5 h-5" />
-        </Link>
-        <Link
-          href="#demo"
-          className="inline-flex justify-center items-center gap-2 px-6 py-3.5 text-base font-medium text-[#1F2937] bg-white hover:bg-gray-50 border border-gray-200 rounded-lg transition-all hover:-translate-y-0.5 hover:shadow-sm"
-        >
-          <PlayCircle className="w-5 h-5 text-gray-400" />
-          Try Live Demo
-        </Link>
-      </div>
-
-      {/* Disclaimer */}
-      <p className="text-sm font-medium text-gray-500 flex flex-wrap items-center justify-center lg:justify-start gap-3">
-        <span>No credit card</span>
-        <span className="w-1.5 h-1.5 rounded-full bg-gray-300" />
-        <span>Free to try</span>
-        <span className="w-1.5 h-1.5 rounded-full bg-gray-300" />
-        <span>Setup in 5 minutes</span>
-      </p>
-    </div>
-  );
-}
-
-function BrowserMockup() {
-  return (
-    <div className="relative mt-12 lg:mt-0 z-10 perspective-1000">
-      {/* Decorative metadata float */}
-      <div className="absolute -right-8 top-12 z-20 bg-white/90 backdrop-blur-sm p-4 rounded-xl shadow-lg border border-gray-100 animate-[bounce_4s_ease-in-out_infinite]">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-[#EBF5FF] flex items-center justify-center shadow-inner">
-             <Zap className="w-5 h-5 text-[#2563EB]" fill="currentColor" />
-          </div>
-          <div>
-            <p className="text-xs text-gray-500 font-medium">Response Time</p>
-            <p className="text-sm text-gray-900 font-bold">&lt; 30 secs</p>
-          </div>
-        </div>
-      </div>
-
-      <div className="relative w-full max-w-lg lg:max-w-none mx-auto bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden transform-gpu hover:-translate-y-1 transition-transform duration-500">
-        {/* macOS window chrome */}
-        <div className="flex items-center px-4 py-3 bg-[#FAFBFC] border-b border-gray-100">
-          <div className="flex space-x-2">
-            <div className="w-3 h-3 bg-[#FF5F56] rounded-full border border-[#E0443E]/30"></div>
-            <div className="w-3 h-3 bg-[#FFBD2E] rounded-full border border-[#DEA123]/30"></div>
-            <div className="w-3 h-3 bg-[#27C93F] rounded-full border border-[#1AAB29]/30"></div>
-          </div>
-          {/* URL bar */}
-          <div className="flex-1 flex justify-center ml-4">
-            <div className="bg-white border border-gray-200 rounded-md py-1.5 px-4 text-xs font-medium text-gray-500 shadow-sm flex items-center space-x-2 w-64 justify-center">
-              <svg className="w-3 h-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-              </svg>
-              <span>iupiter.ai/dashboard</span>
-            </div>
-          </div>
-          <div className="w-10" /> {/* Spacer for symmetry */}
-        </div>
-
-        {/* Chat interface */}
-        <div className="p-6 h-[520px] flex flex-col bg-white">
-          <div className="flex items-center justify-between pb-4 border-b border-gray-100 mb-6">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-[#EBF5FF] text-[#2563EB] rounded-lg">
-                <MessageCircle className="w-5 h-5" />
-              </div>
-              <h3 className="font-semibold text-[#1F2937] text-lg">Recent Inquiries</h3>
-            </div>
-            <div className="flex items-center gap-1.5 px-3 py-1 bg-[#ECFDF5] text-[#10B981] rounded-full text-xs font-medium border border-[#A7F3D0]">
-               <div className="w-1.5 h-1.5 rounded-full bg-[#10B981] animate-pulse"></div>
-               AI Active
-            </div>
-          </div>
-
-          <div className="flex-1 overflow-y-auto pr-2 space-y-6">
-            {/* Customer message */}
-            <div className="flex gap-4">
-              <div className="w-10 h-10 rounded-full bg-red-100 flex-shrink-0 flex items-center justify-center text-red-600 font-medium text-sm border border-red-200">
-                SJ
-              </div>
-              <div>
-                <p className="text-[13px] font-medium text-gray-500 mb-1">Sarah Jenkins</p>
-                <div className="bg-[#F3F4F6] text-[#1F2937] rounded-2xl rounded-tl-sm px-4 py-3 text-[15px] leading-relaxed max-w-[90%]">
-                  Hi there! Is the 3-bed property in East Austin still available for viewing this weekend?
-                </div>
-              </div>
-            </div>
-
-            {/* AI is Typing */}
-            <div className="flex gap-4 items-center animate-[fadeIn_0.5s_ease-out_1s_both]">
-              <div className="w-10 h-10 rounded-full bg-[#EBF5FF] flex-shrink-0 flex items-center justify-center border border-blue-100">
-                <Zap className="w-5 h-5 text-[#2563EB]" />
-              </div>
-              <div>
-                <p className="text-[13px] font-medium text-gray-500 mb-1">Iupiter AI</p>
-                <div className="flex items-center gap-3">
-                   <div className="bg-[#F3F4F6] rounded-2xl rounded-tl-sm px-4 py-3 h-[46px] flex items-center">
-                     <TypingDots />
-                   </div>
-                   <span className="text-xs text-gray-400 font-medium animate-pulse">Iupiter AI is typing...</span>
-                </div>
-              </div>
-            </div>
-
-            {/* AI Response Bubble */}
-            <div className="flex gap-4 justify-end animate-[fadeIn_0.5s_ease-out_2.5s_both]">
-              <div className="flex flex-col items-end">
-                 <p className="text-[13px] font-medium text-gray-500 mb-1 mr-1">Draft Response</p>
-                 <div className="bg-[#2563EB] text-white rounded-2xl rounded-tr-sm px-5 py-4 text-[15px] leading-relaxed max-w-sm shadow-md">
-                   Hi Sarah! Yes, 1245 East Ave is still available. We have an open house this Saturday from 1pm-3pm. Would you like me to book you a private slot before then?
-                 </div>
-                 
-                 {/* Action buttons */}
-                 <div className="flex items-center gap-2 mt-3">
-                    <button className="text-xs font-medium bg-white text-gray-600 border border-gray-200 px-4 py-2 rounded-full hover:bg-gray-50 transition-colors shadow-sm">
-                      Edit Response
-                    </button>
-                    <button className="text-xs font-medium bg-[#10B981] text-white border border-[#10B981] px-4 py-2 rounded-full hover:bg-[#059669] hover:border-[#059669] transition-colors shadow-sm">
-                      Approve & Send
-                    </button>
-                 </div>
-              </div>
-            </div>
-          </div>
-        </div>
+    <div style={{ borderTop: `1px solid ${LINE}`, borderBottom: `1px solid ${LINE}`, overflow: 'hidden', whiteSpace: 'nowrap', padding: '16px 0', WebkitMaskImage: 'linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent)', maskImage: 'linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent)' }}>
+      <div style={{ display: 'inline-flex', gap: 56, animation: 'scroll-marquee 26s linear infinite' }}>
+        {doubled.map((t, i) => (
+          <span key={i} style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 15, color: MUTED2, display: 'inline-flex', alignItems: 'center', gap: 14 }}>
+            <span style={{ width: 6, height: 6, borderRadius: '50%', background: ACCENT, opacity: 0.5, display: 'inline-block' }} />
+            {t}
+          </span>
+        ))}
       </div>
     </div>
   );
 }
 
-function TypingDots() {
-  return (
-    <div className="flex gap-1.5 items-center justify-center h-2">
-      <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-      <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-      <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
-    </div>
-  );
-}
+/* ─── How it works ──────────────────────────────────────────── */
 
 function HowItWorksSection() {
+  const steps = [
+    { icon: Building2, n: '01', title: 'Set up your agent', desc: 'Enter your name, listings, areas you cover, and how you prefer to work. Takes 5 minutes.' },
+    { icon: Rocket,    n: '02', title: 'Embed on your site', desc: 'Paste one line of code. Your AI agent goes live instantly — no developer needed.' },
+    { icon: TrendingUp,n: '03', title: 'Never miss a lead',  desc: "Leads get instant answers 24/7. You get notified when they're ready to talk." },
+  ];
   return (
-    <section id="how-it-works" className="py-24 px-4 sm:px-6 lg:px-8 bg-white border-t border-gray-100">
-      <div className="max-w-7xl mx-auto">
-        <div className="text-center max-w-3xl mx-auto mb-16">
-          <h2 className="text-3xl lg:text-4xl font-bold text-[#1F2937] mb-4">How it works</h2>
-          <p className="text-lg text-gray-600">Three steps. Five minutes. Done.</p>
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {[
-            { icon: Building2, title: "Describe your business", desc: "Enter your business name, services, and pricing." },
-            { icon: UploadCloud, title: "Upload knowledge", desc: "Drop your price list, FAQ, or any document — PDF, Excel, Word." },
-            { icon: Rocket, title: "Launch your agent", desc: "Your AI receptionist is live. It answers clients 24/7." }
-          ].map((item, i) => (
-            <div key={i} className="bg-[#FAFBFC] rounded-2xl p-8 border border-gray-100 hover:shadow-md transition-shadow group">
-              <div className="w-12 h-12 bg-[#EBF5FF] text-[#2563EB] rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                <item.icon className="w-6 h-6" />
+    <section id="how-it-works" style={{ padding: 'clamp(60px,8vw,96px) clamp(20px,4vw,64px)', borderTop: `1px solid ${LINE}` }}>
+      <div style={{ maxWidth: 1280, margin: '0 auto' }}>
+        <p style={{ fontSize: 12, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: MUTED2, marginBottom: 12 }}>How it works</p>
+        <h2 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 'clamp(32px,3.5vw,48px)', letterSpacing: '-0.03em', color: '#F4F3EE', marginBottom: 56, lineHeight: 1.05 }}>
+          Three steps. Five minutes.
+        </h2>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(260px,1fr))', gap: 2 }}>
+          {steps.map((s, i) => (
+            <div key={i} style={{ background: INK2, border: `1px solid ${LINE}`, borderRadius: 16, padding: '28px 28px 32px', display: 'flex', flexDirection: 'column', gap: 20 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 13, color: MUTED2, letterSpacing: '0.06em' }}>{s.n}</span>
+                <div style={{ width: 36, height: 36, borderRadius: 10, background: INK3, border: `1px solid ${LINE}`, display: 'grid', placeItems: 'center' }}>
+                  <s.icon size={16} color={MUTED} />
+                </div>
               </div>
-              <h3 className="text-xl font-bold text-[#1F2937] mb-3">{item.title}</h3>
-              <p className="text-gray-600 leading-relaxed">{item.desc}</p>
+              <div>
+                <h3 style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18, color: 'var(--text-primary)', marginBottom: 10 }}>{s.title}</h3>
+                <p style={{ fontSize: 14.5, color: MUTED, lineHeight: 1.6 }}>{s.desc}</p>
+              </div>
             </div>
           ))}
         </div>
@@ -298,41 +151,36 @@ function HowItWorksSection() {
     </section>
   );
 }
+
+/* ─── Features ──────────────────────────────────────────────── */
 
 function FeaturesSection() {
   const features = [
-    { icon: Zap, title: "2-second response", desc: "Clients get instant answers. No waiting, no missed leads." },
-    { icon: Clock, title: "24/7 availability", desc: "Works nights, weekends, and holidays. Never calls in sick." },
-    { icon: TrendingUp, title: "Smart upselling", desc: "Suggests complementary services to increase your average ticket." },
-    { icon: CalendarCheck, title: "Appointment reminders", desc: "Automatic reminders 24h and 2h before. Reduces no-shows by 60%." },
-    { icon: Target, title: "Lead scoring", desc: "Automatically tags leads as hot, warm, or cold. Focus on what matters." },
-    { icon: HeartHandshake, title: "Human handoff", desc: "Seamlessly transfers to a real person when needed. No dead ends." },
+    { icon: Zap,          title: 'Instant response',       desc: 'Every inquiry answered in under 2 seconds — day or night.', accent: true },
+    { icon: Target,       title: 'Lead qualification',     desc: 'Asks budget, timeline, location. Only sends you warm leads.' },
+    { icon: CalendarCheck,title: 'Tour scheduling',        desc: 'Books showings directly in the chat. Syncs to Google Calendar.' },
+    { icon: TrendingUp,   title: 'Follow Up Boss sync',    desc: 'Leads flow automatically into your CRM. Zero manual entry.' },
+    { icon: HeartHandshake,title: 'Human handoff',         desc: 'Notifies you the moment a lead is hot and ready to close.' },
+    { icon: Building2,    title: '24/7 availability',      desc: 'Works nights, weekends, open houses. Never misses a lead.' },
   ];
-
   return (
-    <section className="py-24 px-4 sm:px-6 lg:px-8 bg-[#FAFBFC]">
-      <div className="max-w-7xl mx-auto">
-        <div className="text-center max-w-3xl mx-auto mb-16">
-          <h2 className="text-3xl lg:text-4xl font-bold text-[#1F2937] mb-4">
-            Everything your receptionist does — minus the salary
-          </h2>
-          <p className="text-lg text-gray-600">
-            A $3,000/month receptionist vs a $150/month AI that works 3x harder.
-          </p>
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {features.map((item, i) => (
-            <div key={i} className="bg-white p-8 rounded-2xl border border-gray-100 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 group">
-              <div className="flex items-start gap-4">
-                <div className="p-2.5 bg-[#EBF5FF] text-[#2563EB] rounded-xl mt-1 group-hover:bg-[#2563EB] group-hover:text-white transition-colors">
-                  <item.icon className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="font-bold text-[#1F2937] text-lg mb-2">{item.title}</h3>
-                  <p className="text-gray-600 leading-relaxed text-[15px]">{item.desc}</p>
-                </div>
+    <section id="features" style={{ padding: 'clamp(60px,8vw,96px) clamp(20px,4vw,64px)', borderTop: `1px solid ${LINE}` }}>
+      <div style={{ maxWidth: 1280, margin: '0 auto' }}>
+        <p style={{ fontSize: 12, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: MUTED2, marginBottom: 12 }}>Features</p>
+        <h2 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 'clamp(32px,3.5vw,48px)', letterSpacing: '-0.03em', color: '#F4F3EE', marginBottom: 14, lineHeight: 1.05 }}>
+          Built for agents who can&apos;t afford to miss a lead.
+        </h2>
+        <p style={{ fontSize: 17, color: MUTED, marginBottom: 56, maxWidth: '44ch', lineHeight: 1.5 }}>
+          One missed inquiry at 11pm could be a €10,000 commission. Iupiter makes sure that never happens.
+        </p>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(260px,1fr))', gap: 2 }}>
+          {features.map((f, i) => (
+            <div key={i} style={{ background: f.accent ? ACCENT : INK2, border: `1px solid ${f.accent ? 'transparent' : LINE}`, borderRadius: 16, padding: '28px 28px 32px' }}>
+              <div style={{ width: 38, height: 38, borderRadius: 10, background: f.accent ? 'rgba(22,33,10,0.15)' : INK3, border: `1px solid ${f.accent ? 'rgba(22,33,10,0.15)' : LINE}`, display: 'grid', placeItems: 'center', marginBottom: 20 }}>
+                <f.icon size={17} color={f.accent ? AINK : MUTED} />
               </div>
+              <h3 style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 17, color: f.accent ? AINK : 'var(--text-primary)', marginBottom: 8 }}>{f.title}</h3>
+              <p style={{ fontSize: 14.5, color: f.accent ? '#2C4010' : MUTED, lineHeight: 1.6 }}>{f.desc}</p>
             </div>
           ))}
         </div>
@@ -341,88 +189,110 @@ function FeaturesSection() {
   );
 }
 
-function DemoSection() {
+
+/* ─── Pricing ───────────────────────────────────────────────── */
+
+function PricingSection() {
+  const plans = [
+    { name: 'Starter', price: '$149', desc: 'Perfect for solo agents who want 24/7 lead coverage.', features: ['1 AI agent','Website chat widget','Email notifications','24/7 availability','Follow Up Boss sync'], accent: false },
+    { name: 'Growth',  price: '$299', desc: 'For teams covering multiple listings and markets.',    features: ['3 AI agents','All Starter features','Google Calendar booking','Zapier integration','Priority support'], accent: true },
+  ];
   return (
-    <section id="demo" className="py-24 px-4 sm:px-6 lg:px-8 bg-white border-t border-gray-100">
-      <div className="max-w-4xl mx-auto">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl lg:text-4xl font-bold text-[#1F2937] mb-4">Try it yourself</h2>
-          <p className="text-lg text-gray-600">Chat with a live AI agent. Pick an industry below.</p>
+    <section id="pricing" style={{ padding: 'clamp(60px,8vw,96px) clamp(20px,4vw,64px)', borderTop: `1px solid ${LINE}` }}>
+      <div style={{ maxWidth: 1280, margin: '0 auto' }}>
+        <p style={{ fontSize: 12, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: MUTED2, marginBottom: 12 }}>Pricing</p>
+        <h2 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 'clamp(32px,3.5vw,48px)', letterSpacing: '-0.03em', color: '#F4F3EE', marginBottom: 14, lineHeight: 1.05 }}>
+          Less than one hour of your commission.
+        </h2>
+        <p style={{ fontSize: 17, color: MUTED, marginBottom: 16, lineHeight: 1.5 }}>No setup fees. Cancel any time.</p>
+
+        {/* ROI callout */}
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 10, background: 'rgba(200,255,52,0.07)', border: `1px solid rgba(200,255,52,0.20)`, borderRadius: 12, padding: '10px 16px', marginBottom: 48, fontSize: 14, color: '#C8FF34' }}>
+          <span>💡</span>
+          <span>One extra deal = €8–15K commission. Iupiter = €149/mo. <strong>ROI: 100×.</strong></span>
         </div>
 
-        <div className="bg-[#FAFBFC] border border-gray-200 rounded-2xl overflow-hidden shadow-xl max-w-2xl mx-auto hover:shadow-2xl transition-shadow">
-          {/* Header */}
-          <div className="bg-white border-b border-gray-100 p-5 flex items-center gap-4 relative">
-            <div className="w-12 h-12 rounded-full bg-pink-100 flex items-center justify-center text-pink-600 font-bold border border-pink-200 text-xl">
-              S
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(280px,1fr))', gap: 16, maxWidth: 680 }}>
+          {plans.map((plan) => (
+            <div key={plan.name} style={{ background: plan.accent ? ACCENT : INK2, border: `1px solid ${plan.accent ? 'transparent' : LINE}`, borderRadius: 20, padding: '28px 28px 32px', display: 'flex', flexDirection: 'column', gap: 20 }}>
+              {plan.accent && <span style={{ display: 'inline-block', width: 'fit-content', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', background: 'rgba(22,33,10,0.18)', color: AINK, padding: '3px 10px', borderRadius: 100 }}>Most popular</span>}
+              <div>
+                <p style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: plan.accent ? '#2C4010' : MUTED2, marginBottom: 8 }}>{plan.name}</p>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, marginBottom: 8 }}>
+                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 40, letterSpacing: '-0.03em', color: plan.accent ? AINK : 'var(--text-primary)' }}>{plan.price}</span>
+                  <span style={{ fontSize: 14, color: plan.accent ? '#2C4010' : MUTED2 }}>/mo</span>
+                </div>
+                <p style={{ fontSize: 14.5, color: plan.accent ? '#2C4010' : MUTED, lineHeight: 1.5 }}>{plan.desc}</p>
+              </div>
+              <ul style={{ display: 'flex', flexDirection: 'column', gap: 10, listStyle: 'none', padding: 0 }}>
+                {plan.features.map(f => (
+                  <li key={f} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 14, color: plan.accent ? '#2C4010' : MUTED }}>
+                    <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke={plan.accent ? AINK : GREEN} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                    {f}
+                  </li>
+                ))}
+              </ul>
+              <Link href="/sign-up" style={{ background: plan.accent ? AINK : ACCENT, color: plan.accent ? ACCENT : AINK, fontWeight: 700, fontSize: 15, padding: '14px 20px', borderRadius: 12, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 'auto' }}>
+                Start capturing leads tonight <ArrowRight size={16} />
+              </Link>
             </div>
-            <div>
-              <h3 className="font-bold text-gray-900 text-lg flex items-center gap-2">
-                Sophie <div className="w-2 h-2 rounded-full bg-[#10B981]"></div>
-              </h3>
-              <p className="text-sm text-gray-500">Glamour Nails Studio</p>
-            </div>
-          </div>
-          
-          {/* Chat Window */}
-          <div className="p-6 h-[320px] flex flex-col bg-white">
-            <div className="flex gap-4 items-end">
-               <div className="w-9 h-9 rounded-full bg-pink-100 flex-shrink-0 flex items-center justify-center text-pink-600 font-medium text-[13px] border border-pink-200">
-                 S
-               </div>
-               <div className="flex flex-col">
-                 <p className="text-xs text-gray-500 font-medium mb-1 pl-1">Sophie</p>
-                 <div className="bg-[#F3F4F6] text-[#1F2937] rounded-2xl rounded-bl-sm px-5 py-3.5 text-[15px] leading-relaxed max-w-[90%] shadow-sm">
-                   Hi there! 👋 I'm Sophie from Glamour Nails. Looking to book an appointment or have questions about our services?
-                 </div>
-               </div>
-            </div>
-          </div>
-          
-          {/* Input Area */}
-          <div className="p-4 bg-white border-t border-gray-100 flex gap-3 items-center">
-            <input type="text" placeholder="Type a message..." className="flex-1 bg-[#FAFBFC] border border-gray-200 rounded-full px-5 py-3 outline-none focus:border-[#2563EB] focus:ring-2 focus:ring-blue-100 transition-all text-[15px]" disabled />
-            <button className="bg-[#2563EB] text-white p-3 rounded-full hover:bg-blue-700 transition-all shadow-sm hover:shadow-md" disabled>
-              <ArrowRight className="w-5 h-5" />
-            </button>
-          </div>
+          ))}
         </div>
+
+        <p style={{ marginTop: 24, fontSize: 13, color: MUTED2 }}>
+          Not ready?{' '}
+          <Link href="https://calendar.app.google/TDFdXZVzzXXYU3DY7" target="_blank" rel="noopener noreferrer" style={{ color: MUTED, textDecorationColor: MUTED2 }}>
+            Book a free 15-min call →
+          </Link>
+        </p>
       </div>
     </section>
   );
 }
 
-function CtaFooterSection({ isLoggedIn }: { isLoggedIn: boolean }) {
+/* ─── Demo ──────────────────────────────────────────────────── */
+
+function DemoSection() {
   return (
-    <footer className="bg-[#FAFBFC] border-t border-gray-200 pt-24 pb-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto text-center mb-20 md:mb-24">
-        <h2 className="text-4xl lg:text-5xl font-bold text-[#1F2937] mb-6">Ready to stop losing clients?</h2>
-        <p className="text-xl text-gray-600 mb-10 max-w-2xl mx-auto leading-relaxed">
-          Build your own AI agent in 5 minutes — or let us set it up for you.
+    <section id="demo" style={{ padding: 'clamp(60px,8vw,96px) clamp(20px,4vw,64px)', borderTop: `1px solid ${LINE}` }}>
+      <div style={{ maxWidth: 860, margin: '0 auto' }}>
+        <div style={{ textAlign: 'center', marginBottom: 40 }}>
+          <p style={{ fontSize: 12, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: MUTED2, marginBottom: 12 }}>Live demo</p>
+          <h2 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 'clamp(28px,3vw,42px)', letterSpacing: '-0.03em', color: '#F4F3EE', marginBottom: 12, lineHeight: 1.05 }}>Try it yourself.</h2>
+          <p style={{ fontSize: 16, color: MUTED }}>Real AI agent — pick a niche and start chatting.</p>
+        </div>
+        <LiveDemoWidget />
+      </div>
+    </section>
+  );
+}
+
+/* ─── Footer CTA ────────────────────────────────────────────── */
+
+function FooterCta({ isLoggedIn }: { isLoggedIn: boolean }) {
+  return (
+    <footer style={{ borderTop: `1px solid ${LINE}` }}>
+      <div style={{ padding: 'clamp(60px,8vw,96px) clamp(20px,4vw,64px)', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', bottom: '-20%', left: '50%', transform: 'translateX(-50%)', width: '60vw', height: '60vw', maxWidth: 800, maxHeight: 800, background: 'radial-gradient(circle at center,rgba(200,255,52,0.07),transparent 60%)', pointerEvents: 'none' }} />
+        <p style={{ fontSize: 12, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: MUTED2, marginBottom: 20 }}>Stop losing deals</p>
+        <h2 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 'clamp(36px,5vw,64px)', letterSpacing: '-0.035em', color: '#F4F3EE', marginBottom: 20, lineHeight: 1 }}>
+          Your next lead is<br />asking right now.
+        </h2>
+        <p style={{ fontSize: 18, color: MUTED, marginBottom: 40, lineHeight: 1.5, maxWidth: '36ch', margin: '0 auto 40px' }}>
+          Set up your AI agent in 5 minutes — or book a call and we&apos;ll do it with you.
         </p>
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Link
-            href={isLoggedIn ? "/dashboard" : "/sign-up"}
-            className="inline-flex justify-center items-center gap-2 px-8 py-4 text-[17px] font-medium text-white bg-[#2563EB] hover:bg-blue-700 rounded-xl shadow-lg shadow-blue-600/20 transition-all hover:-translate-y-0.5"
-          >
-            Build Your Agent
-            <ArrowRight className="w-5 h-5" />
+        <div style={{ display: 'flex', justifyContent: 'center', gap: 16, flexWrap: 'wrap' }}>
+          <Link href={isLoggedIn ? '/dashboard' : '/sign-up'} style={{ background: ACCENT, color: AINK, fontWeight: 700, fontSize: 16.5, padding: '16px 32px', borderRadius: 12, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 9, boxShadow: '0 8px 30px rgba(200,255,52,0.22)' }}>
+            Build your agent — free <ArrowRight size={17} />
           </Link>
-          <Link
-            href="https://t.me/bo_mirash"
-            className="inline-flex justify-center items-center gap-2 px-8 py-4 text-[17px] font-medium text-[#1F2937] bg-white hover:bg-gray-50 border border-gray-200 rounded-xl shadow-sm transition-all hover:-translate-y-0.5"
-          >
-            Contact on Telegram
+          <Link href="https://calendar.app.google/TDFdXZVzzXXYU3DY7" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--text-primary)', border: `1px solid ${STRONG}`, borderRadius: 12, padding: '16px 28px', textDecoration: 'none', fontSize: 16.5, fontWeight: 600 }}>
+            Book a free call
           </Link>
         </div>
       </div>
-      
-      <div className="border-t border-gray-200 pt-8 flex flex-col md:flex-row justify-between items-center text-gray-500 text-sm">
-        <div className="flex items-center gap-2 mb-4 md:mb-0">
-          <span className="font-bold text-[#2563EB] text-lg">Iupiter</span>
-          <span>© 2026 AI Agent Constructor</span>
-        </div>
-        <p>Built with ❤️</p>
+      <div style={{ borderTop: `1px solid ${LINE}`, padding: '20px clamp(20px,4vw,64px)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12, fontSize: 13, color: MUTED2 }}>
+        <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, color: 'var(--text-primary)' }}>Iupiter</span>
+        <span>© 2026 · Built for real estate agents who close more deals.</span>
       </div>
     </footer>
   );
