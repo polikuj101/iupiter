@@ -13,11 +13,11 @@ export default async function DashboardLayout({ children }: { children: React.Re
   await getOrCreateOrg(userId);
 
   return (
-    <div className="flex h-screen bg-[#FAFAF9] overflow-hidden text-[#0A0A0A] antialiased">
+    <div className="flex h-screen overflow-hidden antialiased" style={{ background: '#0A0A0B', color: '#ECEBE6', fontFamily: 'var(--font-body)' }}>
       <Sidebar />
-      <div className="flex-1 flex flex-col overflow-hidden bg-white">
+      <div className="flex-1 flex flex-col overflow-hidden" style={{ background: '#0A0A0B' }}>
         <DashboardHeader />
-        <main className="flex-1 overflow-y-auto p-8 bg-[#FAFAF9]">
+        <main className="flex-1 overflow-y-auto p-8" style={{ background: '#0D0D0F' }}>
           {children}
         </main>
       </div>

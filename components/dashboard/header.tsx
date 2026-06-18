@@ -7,11 +7,16 @@ export default async function DashboardHeader() {
   const org = userId ? await getOrgByClerkId(userId) : null;
 
   return (
-    <header className="h-14 border-b border-[#EAEAEA] bg-white px-6 flex items-center justify-between shrink-0">
+    <header
+      className="h-14 px-6 flex items-center justify-between shrink-0"
+      style={{ borderBottom: '1px solid rgba(255,255,255,0.10)', background: '#0A0A0B' }}
+    >
       <div className="flex items-center gap-2 text-[13px]">
-        <span className="text-[#737373]">Workspace</span>
-        <span className="text-[#D4D4D4]">/</span>
-        <span className="font-medium text-[#0A0A0A]">{org?.name ?? 'My Organization'}</span>
+        <span style={{ color: '#6E6E69' }}>Workspace</span>
+        <span style={{ color: 'rgba(255,255,255,0.18)' }}>/</span>
+        <span className="font-medium" style={{ color: '#ECEBE6' }}>
+          {org?.name ?? 'My Organization'}
+        </span>
       </div>
       <UserButton afterSignOutUrl="/" appearance={{ elements: { avatarBox: 'w-7 h-7' } }} />
     </header>

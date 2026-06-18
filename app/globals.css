@@ -89,73 +89,104 @@
   30%           { transform: translateY(-4px); }
 }
 
+/* ── Iupiter Design Tokens ── */
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
+  /* Brand */
+  --ink:        #0A0A0B;
+  --ink-2:      #141416;
+  --ink-3:      #1C1C1F;
+  --line:       rgba(255,255,255,0.10);
+  --line-strong: rgba(255,255,255,0.18);
+  --text-primary: #ECEBE6;
+  --text-muted:   #9B9B96;
+  --text-muted-2: #6E6E69;
+  --accent:       #C8FF34;
+  --accent-ink:   #16210A;
+  --green:        #2FBF71;
+  --font-display: "Schibsted Grotesk", sans-serif;
+  --font-body:    "Instrument Sans", sans-serif;
+
+  /* Shadcn/Tailwind tokens — mapped to dark theme */
+  --background: #0A0A0B;
+  --foreground: #ECEBE6;
+  --card: #141416;
+  --card-foreground: #ECEBE6;
+  --popover: #141416;
+  --popover-foreground: #ECEBE6;
+  --primary: #C8FF34;
+  --primary-foreground: #16210A;
+  --secondary: #1C1C1F;
+  --secondary-foreground: #ECEBE6;
+  --muted: #1C1C1F;
+  --muted-foreground: #9B9B96;
+  --accent: #1C1C1F;
+  --accent-foreground: #ECEBE6;
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: rgba(255,255,255,0.10);
+  --input: rgba(255,255,255,0.08);
+  --ring: rgba(200,255,52,0.4);
+  --chart-1: #C8FF34;
+  --chart-2: #2FBF71;
+  --chart-3: #9B9B96;
+  --chart-4: #6E6E69;
+  --chart-5: #3A3A3D;
   --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --sidebar: #0A0A0B;
+  --sidebar-foreground: #ECEBE6;
+  --sidebar-primary: #C8FF34;
+  --sidebar-primary-foreground: #16210A;
+  --sidebar-accent: #1C1C1F;
+  --sidebar-accent-foreground: #ECEBE6;
+  --sidebar-border: rgba(255,255,255,0.10);
+  --sidebar-ring: rgba(200,255,52,0.4);
 }
 
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+@keyframes pulse-green {
+  0%, 100% { box-shadow: 0 0 0 4px rgba(47,191,113,0.18); }
+  50%       { box-shadow: 0 0 0 6px rgba(47,191,113,0.05); }
+}
+@keyframes pulse-red {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.35; }
+}
+@keyframes scroll-marquee {
+  to { transform: translateX(-50%); }
+}
+@keyframes typed {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.35; }
+  30%            { transform: translateY(-4px); opacity: 0.9; }
+}
+
+/* ── Deferred rendering for below-the-fold sections ── */
+/* DO NOT add the hero/HeroSection here — it is above the fold. */
+/* contain-intrinsic-size: auto none auto <estimate>
+   - inline-size (width): auto none  → no imposed width; browser caches real width
+   - block-size  (height): auto Xrem → browser caches real height; Xrem is the
+     first-paint placeholder that prevents scrollbar jumping               */
+
+#how-it-works {
+  content-visibility: auto;
+  contain-intrinsic-size: auto none auto 26rem;
+}
+
+#features {
+  content-visibility: auto;
+  contain-intrinsic-size: auto none auto 34rem;
+}
+
+#pricing {
+  content-visibility: auto;
+  contain-intrinsic-size: auto none auto 30rem;
+}
+
+#demo {
+  content-visibility: auto;
+  contain-intrinsic-size: auto none auto 40rem;
+}
+
+footer {
+  content-visibility: auto;
+  contain-intrinsic-size: auto none auto 22rem;
 }
 
 @layer base {

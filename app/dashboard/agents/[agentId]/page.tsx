@@ -5,16 +5,14 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
   ArrowLeft, Save, Trash2, MessageSquare,
-  Bot, Loader2, Phone, CheckCircle2, XCircle,
-  ExternalLink, Copy, Check,
+  Bot, Loader2, ExternalLink, Copy, Check,
 } from 'lucide-react';
 
 // ─── Models with optimal temperatures ────────────────────────────
 
 const MODELS = [
-  { value: 'gemini-2.5-flash',             label: 'Gemini 2.5 Flash',      badge: 'Free quota', temp: 0.7 },
-  { value: 'gemini-3.1-flash-lite-preview', label: 'Gemini 3.1 Flash Lite', badge: 'Free quota', temp: 0.5 },
-  { value: 'gemini-2.5-flash-lite',         label: 'Gemini 2.5 Flash Lite', badge: 'Free quota', temp: 0.5 },
+  { value: 'gemini-2.5-flash',      label: 'Gemini 2.5 Flash',      badge: 'Free quota', temp: 0.7 },
+  { value: 'gemini-2.5-flash-lite', label: 'Gemini 2.5 Flash Lite', badge: 'Free quota', temp: 0.5 },
 ];
 
 // ─── System prompt presets ────────────────────────────────────────
@@ -92,6 +90,13 @@ Rules:
 
 // ─── Types ────────────────────────────────────────────────────────
 
+interface WidgetConfig {
+  brandColor?:   string;
+  greetingText?: string;
+  avatarUrl?:    string;
+  widgetTitle?:  string;
+}
+
 interface Agent {
   id: string;
   name: string;
@@ -101,13 +106,46 @@ interface Agent {
   temperature: number;
   max_tokens: number;
   is_active: boolean;
+  zapier_webhook_url: string | null;
+  widget_config: WidgetConfig;
 }
 
-interface WhatsAppChannel {
-  id: string;
-  config: { phone_number_id?: string; whatsapp_token?: string };
-  is_active: boolean;
-  webhook_verified: boolean;
+// ─── Widget Snippet Component ─────────────────────────────────────
+
+function WidgetSnippet({ agentId }: { agentId: string }) {
+  const [snippetCopied, setSnippetCopied] = useState(false);
+
+  const base = typeof window !== 'undefined' ? window.location.origin : 'https://iupiter.vercel.app';
+  const snippet = `<script>
+  window.IupiterConfig = {
+    agentId: '${agentId}',
+    color: '#2563EB',
+    position: 'right'
+  };
+</script>
+<script src="${base}/widget.js" defer></script>`;
+
+  const copy = () => {
+    navigator.clipboard.writeText(snippet).then(() => {
+      setSnippetCopied(true);
+      setTimeout(() => setSnippetCopied(false), 2000);
+    });
+  };
+
+  return (
+    <div className="relative">
+      <pre className="bg-slate-900 text-green-300 text-xs rounded-xl p-4 overflow-x-auto leading-relaxed whitespace-pre-wrap break-all">
+        {snippet}
+      </pre>
+      <button
+        onClick={copy}
+        className="absolute top-3 right-3 flex items-center gap-1.5 bg-slate-700 hover:bg-slate-600 text-white px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors"
+      >
+        {snippetCopied ? <Check className="w-3.5 h-3.5 text-green-400" /> : <Copy className="w-3.5 h-3.5" />}
+        {snippetCopied ? 'Copied!' : 'Copy'}
+      </button>
+    </div>
+  );
 }
 
 // ─── Page ─────────────────────────────────────────────────────────
@@ -122,30 +160,10 @@ export default function AgentSettingsPage() {
   const [deleting, setDeleting] = useState(false);
   const [saved, setSaved]     = useState(false);
 
-  // WhatsApp state
-  const [waChannel, setWaChannel]       = useState<WhatsAppChannel | null>(null);
-  const [waPhoneId, setWaPhoneId]       = useState('');
-  const [waToken, setWaToken]           = useState('');
-  const [waSaving, setWaSaving]         = useState(false);
-  const [waDisconnecting, setWaDisc]    = useState(false);
-  const [waSaved, setWaSaved]           = useState(false);
-  const [copied, setCopied]             = useState(false);
-
   useEffect(() => {
     fetch(`/api/agents/${agentId}`)
       .then(r => r.json())
       .then(data => { setAgent(data); setLoading(false); });
-
-    fetch(`/api/agents/${agentId}/channels`)
-      .then(r => r.json())
-      .then((channels: WhatsAppChannel[]) => {
-        const wa = channels.find(c => (c as unknown as { platform: string }).platform === 'whatsapp');
-        if (wa) {
-          setWaChannel(wa);
-          setWaPhoneId(wa.config.phone_number_id ?? '');
-          setWaToken(wa.config.whatsapp_token ?? '');
-        }
-      });
   }, [agentId]);
 
   // When model changes → apply optimal temperature
@@ -172,46 +190,6 @@ export default function AgentSettingsPage() {
     setDeleting(true);
     await fetch(`/api/agents/${agentId}`, { method: 'DELETE' });
     router.push('/dashboard/agents');
-  };
-
-  const handleWaSave = async () => {
-    if (!waPhoneId.trim() || !waToken.trim()) return;
-    setWaSaving(true);
-    const res = await fetch(`/api/agents/${agentId}/channels`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        platform: 'whatsapp',
-        config: { phone_number_id: waPhoneId.trim(), whatsapp_token: waToken.trim() },
-      }),
-    });
-    const data = await res.json();
-    if (res.ok) { setWaChannel(data); setWaSaved(true); setTimeout(() => setWaSaved(false), 2500); }
-    setWaSaving(false);
-  };
-
-  const handleWaDisconnect = async () => {
-    if (!confirm('Disconnect WhatsApp? The agent will stop responding to WhatsApp messages.')) return;
-    setWaDisc(true);
-    await fetch(`/api/agents/${agentId}/channels`, {
-      method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ platform: 'whatsapp' }),
-    });
-    setWaChannel(null);
-    setWaPhoneId('');
-    setWaToken('');
-    setWaDisc(false);
-  };
-
-  const webhookUrl = typeof window !== 'undefined'
-    ? `${window.location.origin}/api/webhook/meta`
-    : 'https://iupiter.vercel.app/api/webhook/meta';
-
-  const copyWebhook = () => {
-    navigator.clipboard.writeText(webhookUrl);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
   };
 
   if (loading) return (
@@ -383,118 +361,179 @@ export default function AgentSettingsPage() {
         </div>
       </div>
 
-      {/* ── WhatsApp Integration ── */}
+      {/* ── Channels — Coming Soon ── */}
       <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-green-50 flex items-center justify-center">
-              <Phone className="w-4 h-4 text-green-600" />
+        <div className="px-6 py-4 border-b border-slate-100">
+          <p className="text-sm font-semibold text-slate-900">More Channels</p>
+          <p className="text-xs text-slate-500 mt-0.5">Connect your agent to additional platforms</p>
+        </div>
+        <div className="p-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
+          {[
+            { icon: '💬', name: 'WhatsApp Business', desc: 'Auto-reply to WhatsApp messages' },
+            { icon: '📸', name: 'Instagram DMs', desc: 'Respond to Instagram direct messages' },
+            { icon: '📘', name: 'Facebook Messenger', desc: 'Handle Messenger conversations' },
+          ].map(ch => (
+            <div key={ch.name} className="flex items-start gap-3 rounded-xl border border-slate-100 bg-slate-50 px-4 py-3 opacity-60">
+              <span className="text-xl mt-0.5">{ch.icon}</span>
+              <div>
+                <p className="text-sm font-medium text-slate-700">{ch.name}</p>
+                <p className="text-xs text-slate-500 mt-0.5">{ch.desc}</p>
+                <span className="inline-block mt-1.5 text-xs font-medium text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">
+                  Coming soon
+                </span>
+              </div>
             </div>
-            <div>
-              <p className="text-sm font-semibold text-slate-900">WhatsApp Business</p>
-              <p className="text-xs text-slate-500">Agent responds to messages & saves contacts automatically</p>
-            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ── Zapier / CRM Webhook ── */}
+      <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+        <div className="flex items-center gap-3 px-6 py-4 border-b border-slate-100">
+          <div className="w-9 h-9 rounded-lg bg-orange-50 flex items-center justify-center text-lg">⚡</div>
+          <div>
+            <p className="text-sm font-semibold text-slate-900">Zapier / CRM Webhook</p>
+            <p className="text-xs text-slate-500">Send new leads to HubSpot, Salesforce, Google Sheets, Slack — anything</p>
           </div>
-          {waChannel ? (
-            <span className="inline-flex items-center gap-1.5 text-xs font-medium text-green-700 bg-green-50 border border-green-200 px-2.5 py-1 rounded-full">
-              <CheckCircle2 className="w-3.5 h-3.5" /> Connected
-            </span>
-          ) : (
-            <span className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-500 bg-slate-100 px-2.5 py-1 rounded-full">
-              <XCircle className="w-3.5 h-3.5" /> Not connected
-            </span>
+          {agent.zapier_webhook_url && (
+            <span className="ml-auto text-xs font-medium text-green-700 bg-green-50 border border-green-200 px-2.5 py-1 rounded-full">● Active</span>
           )}
         </div>
-
         <div className="p-6 space-y-4">
-          {/* Webhook URL */}
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">Webhook URL</label>
+            <input
+              value={agent.zapier_webhook_url ?? ''}
+              onChange={e => setAgent({ ...agent, zapier_webhook_url: e.target.value || null })}
+              placeholder="https://hooks.zapier.com/hooks/catch/..."
+              className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-orange-400 font-mono"
+            />
+          </div>
+          <div className="rounded-lg bg-orange-50 border border-orange-100 px-4 py-3 text-xs text-orange-800 space-y-1">
+            <p className="font-semibold">How to connect Zapier:</p>
+            <p>1. Go to zapier.com → Create Zap → Trigger: <strong>Webhooks by Zapier → Catch Hook</strong></p>
+            <p>2. Copy the webhook URL and paste it above</p>
+            <p>3. Save — every new lead will be sent to Zapier automatically</p>
+            <p>4. In Zapier, add an Action: create contact in HubSpot, add row to Google Sheets, send Slack message, etc.</p>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Widget Customization ── */}
+      <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+        <div className="flex items-center gap-3 px-6 py-4 border-b border-slate-100">
+          <div className="w-9 h-9 rounded-lg bg-purple-50 flex items-center justify-center text-lg">🎨</div>
+          <div>
+            <p className="text-sm font-semibold text-slate-900">Widget Appearance</p>
+            <p className="text-xs text-slate-500">Match your brand — color, title, greeting, and avatar</p>
+          </div>
+        </div>
+        <div className="p-6 space-y-5">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1.5">Brand Color</label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="color"
+                  value={agent.widget_config?.brandColor ?? '#2563EB'}
+                  onChange={e => setAgent({ ...agent, widget_config: { ...agent.widget_config, brandColor: e.target.value } })}
+                  className="h-9 w-14 cursor-pointer rounded border border-slate-200 p-0.5"
+                />
+                <input
+                  type="text"
+                  value={agent.widget_config?.brandColor ?? '#2563EB'}
+                  onChange={e => setAgent({ ...agent, widget_config: { ...agent.widget_config, brandColor: e.target.value } })}
+                  placeholder="#2563EB"
+                  className="flex-1 border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 font-mono"
+                />
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1.5">Widget Title</label>
+              <input
+                value={agent.widget_config?.widgetTitle ?? ''}
+                onChange={e => setAgent({ ...agent, widget_config: { ...agent.widget_config, widgetTitle: e.target.value } })}
+                placeholder={agent.name}
+                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">Greeting Message</label>
+            <input
+              value={agent.widget_config?.greetingText ?? ''}
+              onChange={e => setAgent({ ...agent, widget_config: { ...agent.widget_config, greetingText: e.target.value } })}
+              placeholder={`Hi! I'm ${agent.name}. How can I help you today?`}
+              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">Avatar URL <span className="text-slate-400 font-normal">(optional — PNG/JPG, square)</span></label>
+            <input
+              value={agent.widget_config?.avatarUrl ?? ''}
+              onChange={e => setAgent({ ...agent, widget_config: { ...agent.widget_config, avatarUrl: e.target.value || undefined } })}
+              placeholder="https://example.com/avatar.png"
+              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 font-mono"
+            />
+          </div>
+          <a
+            href={`/widget/${agent.id}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 text-sm text-purple-600 hover:text-purple-800 font-medium transition-colors"
+          >
+            <ExternalLink className="w-4 h-4" />
+            Preview with current settings (save first)
+          </a>
+        </div>
+      </div>
+
+      {/* ── Website Widget ── */}
+      <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+        <div className="flex items-center gap-3 px-6 py-4 border-b border-slate-100">
+          <div className="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center">
+            <MessageSquare className="w-4 h-4 text-blue-600" />
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-slate-900">Website Chat Widget</p>
+            <p className="text-xs text-slate-500">Add a floating chat bubble to any website — no coding skills needed</p>
+          </div>
+        </div>
+
+        <div className="p-6 space-y-5">
+          {/* Snippet */}
           <div>
             <label className="block text-xs font-medium text-slate-500 mb-1.5 uppercase tracking-wide">
-              Webhook URL — paste this in Meta Developer Console
+              Paste this code before &lt;/body&gt; on your website
             </label>
-            <div className="flex items-center gap-2">
-              <div className="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs font-mono text-slate-600 truncate">
-                {webhookUrl}
+            <WidgetSnippet agentId={agentId} />
+          </div>
+
+          {/* Platform guides */}
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {[
+              { name: 'WordPress', icon: '🟦', hint: 'Appearance → Theme File Editor → footer.php — paste before </body>' },
+              { name: 'Tilda',     icon: '⬜', hint: 'Site Settings → More → HTML code in <head> — paste there' },
+              { name: 'Wix',      icon: '🟪', hint: 'Settings → Custom Code → Add Code → Body — End' },
+              { name: 'Shopify',  icon: '🟩', hint: 'Online Store → Themes → Edit Code → theme.liquid before </body>' },
+            ].map(p => (
+              <div key={p.name} className="rounded-xl border border-slate-100 bg-slate-50 p-3">
+                <p className="text-sm font-semibold text-slate-800 mb-1">{p.icon} {p.name}</p>
+                <p className="text-xs text-slate-500 leading-relaxed">{p.hint}</p>
               </div>
-              <button
-                onClick={copyWebhook}
-                className="flex items-center gap-1.5 px-3 py-2 border border-slate-200 rounded-lg text-xs text-slate-600 hover:bg-slate-50 transition-colors"
-              >
-                {copied ? <Check className="w-3.5 h-3.5 text-green-600" /> : <Copy className="w-3.5 h-3.5" />}
-                {copied ? 'Copied' : 'Copy'}
-              </button>
-            </div>
+            ))}
           </div>
 
-          {/* Credentials */}
-          <div className="grid grid-cols-1 gap-3">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                Phone Number ID
-                <a
-                  href="https://developers.facebook.com/apps"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="ml-2 text-blue-500 hover:text-blue-700 inline-flex items-center gap-0.5"
-                >
-                  <ExternalLink className="w-3 h-3" /> Meta Console
-                </a>
-              </label>
-              <input
-                value={waPhoneId}
-                onChange={e => setWaPhoneId(e.target.value)}
-                placeholder="123456789012345"
-                className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-green-500 font-mono"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                Access Token (WhatsApp)
-              </label>
-              <input
-                type="password"
-                value={waToken}
-                onChange={e => setWaToken(e.target.value)}
-                placeholder="EAABsbCS..."
-                className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-green-500 font-mono"
-              />
-            </div>
-          </div>
-
-          {/* How it works */}
-          <div className="rounded-lg bg-green-50 border border-green-100 px-4 py-3 text-xs text-green-800 space-y-1">
-            <p className="font-semibold">How it works after connecting:</p>
-            <p>1. Customer sends a message to your WhatsApp number</p>
-            <p>2. Agent replies automatically using your system prompt</p>
-            <p>3. Contact is saved to your Contacts dashboard with lead status</p>
-            <p>4. Full conversation history is stored in Conversations</p>
-          </div>
-
-          {/* Buttons */}
-          <div className="flex items-center gap-3">
-            <button
-              onClick={handleWaSave}
-              disabled={waSaving || !waPhoneId.trim() || !waToken.trim()}
-              className="flex items-center gap-2 bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white px-4 py-2.5 rounded-lg text-sm font-medium transition-colors"
-            >
-              {waSaving
-                ? <><Loader2 className="w-4 h-4 animate-spin" /> Saving…</>
-                : waSaved
-                ? <><Check className="w-4 h-4" /> Saved!</>
-                : <><Phone className="w-4 h-4" /> {waChannel ? 'Update connection' : 'Connect WhatsApp'}</>
-              }
-            </button>
-            {waChannel && (
-              <button
-                onClick={handleWaDisconnect}
-                disabled={waDisconnecting}
-                className="text-sm text-red-500 hover:text-red-700 font-medium transition-colors disabled:opacity-50"
-              >
-                {waDisconnecting ? 'Disconnecting…' : 'Disconnect'}
-              </button>
-            )}
-          </div>
+          {/* Preview link */}
+          <a
+            href={`/widget/${agentId}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors"
+          >
+            <ExternalLink className="w-4 h-4" />
+            Preview widget in new tab
+          </a>
         </div>
       </div>
 
