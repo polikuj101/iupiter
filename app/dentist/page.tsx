@@ -5,12 +5,14 @@ import { auth } from '@clerk/nextjs/server';
 import { ArrowRight, Zap, CalendarCheck, Target, HeartHandshake, PhoneOff, Clock } from 'lucide-react';
 import DentistDemo from './DentistDemo';
 import LandingNav from '@/app/components/LandingNav';
+import ScrollReset from '@/app/components/ScrollReset';
 
 export default async function DentistPage() {
   const { userId } = await auth();
   const isLoggedIn = !!userId;
   return (
     <main className="min-h-screen overflow-x-hidden" style={{ background: 'var(--ink)', color: 'var(--text-primary)', fontFamily: 'var(--font-body)' }}>
+      <ScrollReset />
       <LandingNav isLoggedIn={isLoggedIn} />
       <HeroSection isLoggedIn={isLoggedIn} />
       <Marquee />
