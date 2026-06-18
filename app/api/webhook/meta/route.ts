@@ -13,6 +13,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { createHmac, timingSafeEqual } from 'crypto';
 import { handleIncomingMessage } from '@/lib/agent';
 import { getChannelByPlatformId } from '@/lib/db/channels';
 import type { Platform, ChannelCredentials } from '@/lib/meta-client';
@@ -35,11 +36,30 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 // ─── POST — Incoming events ───────────────────────────────────
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
+  let rawBody: string;
   let body: Record<string, unknown>;
   try {
-    body = await request.json();
+    rawBody = await request.text();
+    body = JSON.parse(rawBody);
   } catch {
     return new NextResponse('Bad Request', { status: 400 });
+  }
+
+  // Verify X-Hub-Signature-256 when META_APP_SECRET is configured
+  const appSecret = process.env.META_APP_SECRET;
+  if (appSecret) {
+    const signature = request.headers.get('x-hub-signature-256');
+    if (!signature) {
+      return new NextResponse('Missing signature', { status: 401 });
+    }
+    const expected = 'sha256=' + createHmac('sha256', appSecret).update(rawBody).digest('hex');
+    try {
+      if (!timingSafeEqual(Buffer.from(signature), Buffer.from(expected))) {
+        return new NextResponse('Invalid signature', { status: 401 });
+      }
+    } catch {
+      return new NextResponse('Invalid signature', { status: 401 });
+    }
   }
 
   // Respond immediately — process async
@@ -190,8 +210,14 @@ async function resolveChannelConfig(
     }
   }
 
-  // Fallback to env vars (dev mode / single-tenant)
-  console.log('[webhook] no channel record found, falling back to env vars');
+  // In production, refuse to process messages that can't be routed to a real org
+  if (process.env.NODE_ENV === 'production') {
+    console.error(`[webhook] no channel record for platform=${platform} id=${platformIdentifier} — dropping event`);
+    throw new Error(`No channel configured for ${platform}:${platformIdentifier}`);
+  }
+
+  // Dev fallback to env vars (only outside production)
+  console.log('[webhook] no channel record found, falling back to env vars (dev only)');
   return {
     agentConfig: {
       id:    'dev-agent',
