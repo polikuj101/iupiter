@@ -40,7 +40,8 @@ export default function TermsOfServicePage() {
         <Section title="1. Agreement">
           <p>
             These Terms govern your use of Iupiter, an AI receptionist platform operated by{' '}
-            <strong style={{ color: '#F4F3EE' }}>[Your Legal Entity Name]</strong> (&quot;Iupiter,&quot; &quot;we,&quot; &quot;us&quot;).
+            <strong style={{ color: '#F4F3EE' }}>Nurbolat Mirash</strong>, an individual operating as an unincorporated
+            business based in Kazakhstan (&quot;Iupiter,&quot; &quot;we,&quot; &quot;us&quot;).
             By creating an account or using the service, you agree to these Terms. If you do not agree, do not
             use Iupiter.
           </p>
@@ -130,7 +131,7 @@ export default function TermsOfServicePage() {
 
         <Section title="11. Governing law">
           <p>
-            These Terms are governed by the laws of <strong style={{ color: '#F4F3EE' }}>[Insert governing jurisdiction]</strong>,
+            These Terms are governed by the laws of <strong style={{ color: '#F4F3EE' }}>the Republic of Kazakhstan</strong>,
             without regard to conflict-of-law principles.
           </p>
         </Section>
@@ -144,7 +145,7 @@ export default function TermsOfServicePage() {
 
         <Section title="13. Contact">
           <p>
-            Questions about these Terms: <strong style={{ color: '#F4F3EE' }}>[Insert contact email]</strong>.
+            Questions about these Terms: <strong style={{ color: '#F4F3EE' }}>bo.mirash@gmail.com</strong>.
           </p>
         </Section>
       </div>
