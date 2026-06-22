@@ -292,7 +292,11 @@ function FooterCta({ isLoggedIn }: { isLoggedIn: boolean }) {
       </div>
       <div style={{ borderTop: `1px solid ${LINE}`, padding: '20px clamp(20px,4vw,64px)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12, fontSize: 13, color: MUTED2 }}>
         <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, color: 'var(--text-primary)' }}>Iupiter</span>
-        <span>© 2026 · Built for real estate agents who close more deals.</span>
+        <div style={{ display: 'flex', gap: 20, alignItems: 'center' }}>
+          <Link href="/privacy" style={{ color: MUTED2, textDecoration: 'none' }}>Privacy</Link>
+          <Link href="/terms" style={{ color: MUTED2, textDecoration: 'none' }}>Terms</Link>
+          <span>© 2026 · Built for real estate agents who close more deals.</span>
+        </div>
       </div>
     </footer>
   );

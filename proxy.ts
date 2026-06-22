@@ -5,6 +5,8 @@ import type { NextRequest } from 'next/server';
 const publicRoutes = createRouteMatcher([
   '/',
   '/dentist',
+  '/privacy',
+  '/terms',
   '/sign-in(.*)',
   '/sign-up(.*)',
   '/api/webhook(.*)',
