@@ -44,9 +44,9 @@ export default function PrivacyPolicyPage() {
             Instagram, and Messenger.
           </p>
           <p style={{ marginTop: 12 }}>
-            Legal entity: <strong style={{ color: '#F4F3EE' }}>[Your Legal Entity Name — sole proprietor / LLC / Inc., insert here]</strong><br />
-            Registered address: <strong style={{ color: '#F4F3EE' }}>[Insert business address]</strong><br />
-            Contact: <strong style={{ color: '#F4F3EE' }}>[Insert a dedicated privacy/legal contact email, e.g. privacy@iupiter.ai]</strong>
+            Operated by: <strong style={{ color: '#F4F3EE' }}>Nurbolat Mirash</strong>, an individual operating as an
+            unincorporated business based in <strong style={{ color: '#F4F3EE' }}>Kazakhstan</strong>.<br />
+            Contact: <strong style={{ color: '#F4F3EE' }}>bo.mirash@gmail.com</strong>
           </p>
         </Section>
 
@@ -151,7 +151,7 @@ export default function PrivacyPolicyPage() {
 
         <Section title="Contact">
           <p>
-            Questions about this policy or your data: <strong style={{ color: '#F4F3EE' }}>[Insert contact email]</strong>.
+            Questions about this policy or your data: <strong style={{ color: '#F4F3EE' }}>bo.mirash@gmail.com</strong>.
           </p>
         </Section>
       </div>
