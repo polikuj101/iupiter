@@ -114,9 +114,11 @@ export default function PrivacyPolicyPage() {
 
         <Section title="Your rights">
           <p>
-            Depending on where you or your end-customers are located, you may have rights to access, correct,
-            export, or delete personal data (for example, under GDPR if you are in the EU/EEA, or under
-            state privacy laws like the CCPA if you are in the US). To exercise these rights, contact us at
+            If you are a resident of California, Virginia, Colorado, Connecticut, Utah, or another U.S.
+            state with a comprehensive privacy law, you may have the right to know what personal data we hold
+            about you, request a copy, correct it, delete it, and opt out of certain processing. If you are
+            in the EU/EEA or UK, you have similar rights under GDPR/UK GDPR, plus the right to lodge a
+            complaint with your local data protection authority. To exercise these rights, contact us at
             the address above. If you are a business using Iupiter to handle your own customers&apos; data, you
             are responsible for honoring similar requests from your own customers and may ask us to assist.
           </p>
@@ -124,9 +126,15 @@ export default function PrivacyPolicyPage() {
 
         <Section title="SMS consent">
           <p>
-            If SMS notifications are enabled for an agent, end-customers who provide a phone number in chat
-            may receive a text message related to their inquiry. Message and data rates may apply. Customers
-            can reply STOP to opt out of further messages at any time.
+            If SMS notifications are enabled for an agent, an end-customer who provides their phone number in
+            chat consents to receive text messages related to their inquiry (for example, confirmations and
+            follow-ups). Message frequency varies based on the conversation. Message and data rates may
+            apply. Consent to receive SMS is not a condition of purchasing any service. Customers can opt out
+            at any time by replying <strong style={{ color: '#F4F3EE' }}>STOP</strong>, and can reply{' '}
+            <strong style={{ color: '#F4F3EE' }}>HELP</strong> for assistance. We do not share mobile phone
+            numbers with third parties for marketing purposes. Businesses using Iupiter to message their own
+            customers are responsible for obtaining and documenting proper consent under the U.S. Telephone
+            Consumer Protection Act (TCPA) and any other applicable law before enabling SMS for an agent.
           </p>
         </Section>
 
