@@ -16,6 +16,7 @@ const publicRoutes = createRouteMatcher([
   '/demo(.*)',
   '/api/demo(.*)',
   '/api/auth/google/callback',
+  '/api/twilio/voice-webhook',
 ]);
 
 // In Next.js 16, the file is proxy.ts and the export is named `proxy`
