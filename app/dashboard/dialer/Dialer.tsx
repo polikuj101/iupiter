@@ -80,7 +80,7 @@ export default function Dialer() {
     <div className="max-w-md mx-auto bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
       <h1 className="text-xl font-semibold text-gray-900 mb-1">Browser dialer</h1>
       <p className="text-sm text-gray-500 mb-6">
-        Calls your phone first, then bridges to the number below.
+        Talk through your mic and speakers — connects directly from this browser tab.
       </p>
 
       <label className="block text-sm font-medium text-gray-700 mb-1">Phone number to call</label>
@@ -90,7 +90,7 @@ export default function Dialer() {
         onChange={(e) => setNumber(e.target.value)}
         placeholder="+15551234567"
         disabled={status === 'connecting' || status === 'ringing' || status === 'in-progress'}
-        className="w-full border border-gray-300 rounded-lg px-3 py-2 mb-4 outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50"
+        className="w-full border border-gray-300 rounded-lg px-3 py-2 mb-4 text-gray-900 placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50"
       />
 
       <div className="flex gap-3">
