@@ -4,6 +4,16 @@ import { useEffect, useRef, useState } from 'react';
 
 type CallStatus = 'idle' | 'connecting' | 'ringing' | 'in-progress' | 'ended' | 'error';
 
+function extractMsg(err: unknown): string {
+  if (!err) return '';
+  if (typeof err === 'string') return err;
+  if (typeof err === 'object') {
+    const e = err as Record<string, unknown>;
+    return String(e.message ?? e.description ?? e.code ?? JSON.stringify(err));
+  }
+  return String(err);
+}
+
 export default function Dialer() {
   const [number, setNumber]   = useState('');
   const [status, setStatus]   = useState<CallStatus>('idle');
@@ -23,7 +33,10 @@ export default function Dialer() {
 
         if (!mounted) return;
         const device = new Device(token, { logLevel: 1 });
-        device.on('error', (e) => setError(e.message || 'Device error'));
+        device.on('error', (e) => {
+          console.error('[Twilio device error]', e);
+          setError(extractMsg(e) || 'Device error');
+        });
         deviceRef.current = device;
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to initialize dialer');
@@ -55,9 +68,10 @@ export default function Dialer() {
       activeCall.on('ringing', () => setStatus('ringing'));
       activeCall.on('accept', () => setStatus('in-progress'));
       activeCall.on('disconnect', () => setStatus('ended'));
-      activeCall.on('error', (e) => { setError(e.message); setStatus('error'); });
+      activeCall.on('error', (e) => { console.error('[Twilio call error]', e); setError(extractMsg(e)); setStatus('error'); });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Call failed to start');
+      console.error('[Twilio connect throw]', err);
+      setError(extractMsg(err) || 'Call failed to start');
       setStatus('error');
     }
   };
