@@ -1,6 +1,23 @@
-import { GoogleGenerativeAI, FunctionDeclaration, Tool, SchemaType } from '@google/generative-ai';
+import { GoogleGenerativeAI, GoogleGenerativeAIFetchError, FunctionDeclaration, GenerationConfig, Tool, SchemaType } from '@google/generative-ai';
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY || '');
+
+// Free-tier gemini-2.5-flash is capped at 5 requests/min *per project*, shared
+// across every agent's widget. gemini-2.5-flash-lite has a higher free-tier
+// ceiling (15 RPM / 1000 RPD), so we retry on it once if the primary model
+// gets rate limited, instead of surfacing a hard failure to the visitor.
+const FALLBACK_MODEL = process.env.GOOGLE_FALLBACK_MODEL || 'gemini-2.5-flash-lite';
+
+// gemini-2.5-* models "think" before answering, and — unless includeThoughts
+// is explicitly set (we never set it) — that reasoning is never returned in
+// the response parts, so it can't leak into a chat bubble either way. The
+// real risk is budget: thinking tokens draw from the same maxOutputTokens
+// ceiling as the visible reply, so a tight budget can let thinking eat
+// everything and truncate the answer. THINKING_BUDGET caps reasoning to a
+// bounded allowance, and maxOutputTokens is sized on top of it so the
+// visible reply still gets its full requested length regardless of how much
+// the model reasons.
+const THINKING_BUDGET = Number(process.env.GOOGLE_THINKING_BUDGET ?? 512);
 
 export function buildSystemPrompt(options?: {
   systemPrompt?: string;
@@ -97,11 +114,6 @@ export async function generateReply(
     ? [{ functionDeclarations: [BOOK_APPOINTMENT_FUNCTION] }]
     : [];
 
-  const model = genAI.getGenerativeModel({
-    model: modelName,
-    ...(tools.length > 0 ? { tools } : {}),
-  });
-
   // Gemini requires strictly alternating user/model turns starting with user.
   // Merge consecutive assistant messages (from multi-bubble split) and strip
   // any leading assistant messages (e.g. the greeting).
@@ -121,14 +133,33 @@ export async function generateReply(
     parts: [{ text: msg.content }],
   }));
 
-  const response = await model.generateContent({
-    contents,
-    systemInstruction: buildSystemPrompt(options),
-    generationConfig: {
-      maxOutputTokens: options?.maxTokens ?? 300,
-      temperature:     options?.temperature ?? 0.7,
-    },
-  });
+  const visibleTokens = options?.maxTokens ?? 300;
+  const generationConfig: GenerationConfig & { thinkingConfig?: { thinkingBudget: number } } = {
+    // maxOutputTokens is the ceiling for thinking + visible reply combined,
+    // so add the thinking allowance on top — otherwise reasoning would eat
+    // into the reply's own budget and truncate it (the original bug).
+    maxOutputTokens: visibleTokens + THINKING_BUDGET,
+    temperature:     options?.temperature ?? 0.7,
+    thinkingConfig:  { thinkingBudget: THINKING_BUDGET },
+  };
+  const systemInstruction = buildSystemPrompt(options);
+
+  const callModel = (name: string) =>
+    genAI
+      .getGenerativeModel({ model: name, ...(tools.length > 0 ? { tools } : {}) })
+      .generateContent({ contents, systemInstruction, generationConfig });
+
+  let response;
+  try {
+    response = await callModel(modelName);
+  } catch (err) {
+    const isRateLimited = err instanceof GoogleGenerativeAIFetchError && err.status === 429;
+    if (isRateLimited && modelName !== FALLBACK_MODEL) {
+      response = await callModel(FALLBACK_MODEL);
+    } else {
+      throw err;
+    }
+  }
 
   const candidate = response.response.candidates?.[0];
   const part      = candidate?.content?.parts?.[0];
