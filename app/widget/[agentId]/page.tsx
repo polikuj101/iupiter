@@ -60,13 +60,18 @@ export default function WidgetPage() {
         body: JSON.stringify({ history: updated }),
       });
       const data = await res.json();
-      setMessages([...updated, {
-        role: 'assistant',
-        content: data.reply || data.error || 'Something went wrong.',
-      }]);
+      const raw = data.reply || data.error || 'Something went wrong.';
+      const parts = raw.split(/\n\n+/).map((s: string) => s.trim()).filter(Boolean);
+
+      setMessages([...updated, { role: 'assistant', content: parts[0] }]);
+      setLoading(false);
+
+      for (let i = 1; i < parts.length; i++) {
+        await new Promise(r => setTimeout(r, 700));
+        setMessages(prev => [...prev, { role: 'assistant', content: parts[i] }]);
+      }
     } catch {
-      setMessages([...updated, { role: 'assistant', content: 'Connection error. Please try again.' }]);
-    } finally {
+      setMessages(prev => [...prev, { role: 'assistant', content: 'Connection error. Please try again.' }]);
       setLoading(false);
     }
   };

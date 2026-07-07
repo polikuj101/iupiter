@@ -8,11 +8,11 @@ export function buildSystemPrompt(options?: {
   calendarConnected?: boolean;
 }): string {
   if (options?.systemPrompt) {
-    // Append calendar instructions if connected
+    let prompt = options.systemPrompt + FORMATTING_RULES;
     if (options.calendarConnected) {
-      return options.systemPrompt + '\n\n' + CALENDAR_ADDON;
+      prompt += '\n\n' + CALENDAR_ADDON;
     }
-    return options.systemPrompt;
+    return prompt;
   }
 
   const business = options?.businessContext || process.env.BUSINESS_CONTEXT || '';
@@ -32,6 +32,14 @@ Strict rules you MUST follow:
 ${options?.calendarConnected ? `8. When a customer wants to book an appointment, collect their name, preferred date (e.g. "Monday May 12"), preferred time, and service. Then use the book_appointment function to create it.\n` : ''}
 Your goal: make the person feel heard and guide them toward taking an action (booking, purchase, inquiry).`.trim();
 }
+
+const FORMATTING_RULES = `
+
+Reply format rules (always follow, no exceptions):
+- Keep each message to 1-2 sentences max. If you need to say more, split into separate paragraphs separated by a blank line — each paragraph becomes its own chat bubble.
+- NEVER use bullet points, numbered lists, headers, or any markdown. Plain text only.
+- Always give a real, substantive answer. Never just validate or acknowledge without actually answering the question.
+- Sound like a real person texting: warm, direct, and concise.`;
 
 const CALENDAR_ADDON = `When a customer wants to book an appointment:
 1. Ask for: full name, preferred date (day and date), preferred time, and what service they need.
