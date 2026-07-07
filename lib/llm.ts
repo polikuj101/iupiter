@@ -102,7 +102,21 @@ export async function generateReply(
     ...(tools.length > 0 ? { tools } : {}),
   });
 
-  const contents = history.map((msg) => ({
+  // Gemini requires strictly alternating user/model turns starting with user.
+  // Merge consecutive assistant messages (from multi-bubble split) and strip
+  // any leading assistant messages (e.g. the greeting).
+  const merged: typeof history = [];
+  for (const msg of history) {
+    const last = merged[merged.length - 1];
+    if (last && last.role === 'assistant' && msg.role === 'assistant') {
+      last.content += '\n\n' + msg.content;
+    } else {
+      merged.push({ ...msg });
+    }
+  }
+  const normalized = merged[0]?.role === 'assistant' ? merged.slice(1) : merged;
+
+  const contents = normalized.map((msg) => ({
     role:  msg.role === 'user' ? 'user' : 'model',
     parts: [{ text: msg.content }],
   }));
