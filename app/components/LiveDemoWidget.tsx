@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, type CSSProperties, type ReactNode } from 'react';
 import { DEMO_LISTINGS, type DemoListingNiche } from '@/lib/demo-listings';
+import { DEFAULT_DEMO_PROFILE, type DemoAgentProfile, type LeadCaptureTrigger } from '@/lib/demo-profile';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -34,6 +35,7 @@ export default function LiveDemoWidget() {
   const [input, setInput]       = useState('');
   const [loading, setLoading]   = useState(false);
   const [initing, setIniting]   = useState(true);
+  const [profile, setProfile]   = useState<DemoAgentProfile>(DEFAULT_DEMO_PROFILE);
   const bottomRef               = useRef<HTMLDivElement>(null);
   const inputRef                = useRef<HTMLInputElement>(null);
 
@@ -78,7 +80,7 @@ export default function LiveDemoWidget() {
       const res  = await fetch(`/api/demo/${niche.key}`, {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ history: updated }),
+        body:    JSON.stringify({ history: updated, profile }),
       });
       const data = await res.json() as { reply?: string };
       setMessages([...updated, {
@@ -93,7 +95,7 @@ export default function LiveDemoWidget() {
   };
 
   return (
-    <div style={{ width: '100%', maxWidth: 980, margin: '0 auto', fontFamily: 'var(--font-body)' }}>
+    <div style={{ width: '100%', maxWidth: 1220, margin: '0 auto', fontFamily: 'var(--font-body)' }}>
 
       {/* Niche tabs */}
       <div style={{ display: 'flex', gap: 8, marginBottom: 20, justifyContent: 'center' }}>
@@ -257,7 +259,7 @@ export default function LiveDemoWidget() {
         </div>
       </div>
 
-      <ListingsPanel niche={niche.key as DemoListingNiche} />
+      <ContextBasePanel niche={niche.key as DemoListingNiche} profile={profile} onChange={setProfile} />
 
       </div>
 
@@ -271,38 +273,224 @@ export default function LiveDemoWidget() {
   );
 }
 
-function ListingsPanel({ niche }: { niche: DemoListingNiche }) {
+type SectionKey = 'identity' | 'geographies' | 'superpowers' | 'vendors' | 'leadCapture' | 'listings';
+
+const SECTIONS: { key: SectionKey; label: string }[] = [
+  { key: 'identity',    label: 'Professional Identity & Contact Routing' },
+  { key: 'geographies', label: 'Dynamic Target Geographies (Zip Codes/Neighborhoods)' },
+  { key: 'superpowers', label: '"My Superpowers"' },
+  { key: 'vendors',     label: 'Preferred Vendor Recommendations' },
+  { key: 'leadCapture', label: 'The Lead-Capture Trigger' },
+  { key: 'listings',    label: 'Sample Listings' },
+];
+
+const fieldStyle: CSSProperties = {
+  width: '100%', border: `1px solid ${LINE}`, borderRadius: 10,
+  padding: '8px 11px', fontSize: 12.5, outline: 'none',
+  background: INK3, color: '#ECEBE6', fontFamily: 'var(--font-body)',
+  marginBottom: 10,
+};
+
+function FieldLabel({ children }: { children: ReactNode }) {
+  return <label style={{ display: 'block', fontSize: 11, color: MUTED, marginBottom: 4 }}>{children}</label>;
+}
+
+function ContextBasePanel({
+  niche, profile, onChange,
+}: {
+  niche: DemoListingNiche;
+  profile: DemoAgentProfile;
+  onChange: (p: DemoAgentProfile) => void;
+}) {
+  const [active, setActive] = useState<SectionKey>('identity');
   const listings = DEMO_LISTINGS[niche];
-  if (!listings?.length) return null;
+
+  const activeLabel = SECTIONS.find((s) => s.key === active)?.label ?? '';
 
   return (
     <div style={{
-      flex: '1 1 260px', maxWidth: 300,
-      background: INK2, border: `1px solid ${LINE}`, borderRadius: 20,
-      padding: '16px 16px 18px', boxShadow: '0 40px 80px -30px rgba(0,0,0,0.6)',
+      flex: '1 1 460px', maxWidth: 520, minHeight: 420,
+      display: 'flex', background: INK2, border: `1px solid ${LINE}`, borderRadius: 20,
+      overflow: 'hidden', boxShadow: '0 40px 80px -30px rgba(0,0,0,0.6)',
     }}>
-      <p style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 13, color: '#ECEBE6', margin: '0 0 3px' }}>
-        📋 Knowledge base
-      </p>
-      <p style={{ fontSize: 11.5, color: MUTED2, margin: '0 0 14px', lineHeight: 1.4 }}>
-        Sample listings the AI answers from live — real customers connect their own.
-      </p>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-        {listings.map((l) => (
-          <div key={l.address} style={{
-            border: `1px solid ${LINE}`, borderRadius: 12, padding: '10px 12px', background: 'rgba(255,255,255,0.02)',
-          }}>
-            <p style={{ fontSize: 12.5, fontWeight: 600, color: '#ECEBE6', margin: '0 0 2px' }}>{l.address}</p>
-            <p style={{ fontSize: 12, fontWeight: 700, color: ACCENT, margin: '0 0 4px' }}>{l.price}</p>
-            <p style={{ fontSize: 11, color: MUTED, margin: 0 }}>
-              {l.beds > 0 ? `${l.beds}bd/${l.baths}ba · ` : ''}{l.sqft.toLocaleString()} sqft
-            </p>
-          </div>
+      {/* Section list */}
+      <div style={{ width: 170, flexShrink: 0, borderRight: `1px solid ${LINE}`, padding: '14px 8px', display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <p style={{ fontSize: 10, fontWeight: 700, color: MUTED2, textTransform: 'uppercase', letterSpacing: '0.06em', padding: '2px 8px 10px' }}>
+          📋 Context base
+        </p>
+        {SECTIONS.map((s) => (
+          <button
+            key={s.key}
+            onClick={() => setActive(s.key)}
+            style={{
+              textAlign: 'left', fontSize: 11.5, lineHeight: 1.35, fontWeight: 600,
+              padding: '8px 8px', borderRadius: 8, border: 'none', cursor: 'pointer',
+              background: active === s.key ? 'rgba(200,255,52,0.12)' : 'transparent',
+              color: active === s.key ? ACCENT : MUTED,
+              fontFamily: 'var(--font-body)', transition: 'all 0.15s',
+            }}
+          >
+            {s.label}
+          </button>
         ))}
+      </div>
+
+      {/* Selected section content */}
+      <div style={{ flex: 1, padding: '16px 18px', overflowY: 'auto', maxHeight: 460 }}>
+        <p style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 13.5, color: '#ECEBE6', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.02em' }}>
+          {activeLabel}
+        </p>
+        <p style={{ fontSize: 11, color: MUTED2, margin: '0 0 14px', lineHeight: 1.4 }}>
+          Fill this in as if it were your own agent profile — the AI adapts live. Real customers connect their own private data instead of typing it here each time.
+        </p>
+
+        {active === 'identity' && (
+          <>
+            <FieldLabel>Direct phone</FieldLabel>
+            <input style={fieldStyle} value={profile.identity.phone}
+              onChange={(e) => onChange({ ...profile, identity: { ...profile.identity, phone: e.target.value } })} />
+            <FieldLabel>WhatsApp</FieldLabel>
+            <input style={fieldStyle} value={profile.identity.whatsapp}
+              onChange={(e) => onChange({ ...profile, identity: { ...profile.identity, whatsapp: e.target.value } })} />
+            <FieldLabel>Calendar link</FieldLabel>
+            <input style={fieldStyle} value={profile.identity.calendarLink}
+              onChange={(e) => onChange({ ...profile, identity: { ...profile.identity, calendarLink: e.target.value } })} />
+            <FieldLabel>License number (e.g. DRE/TREC)</FieldLabel>
+            <input style={{ ...fieldStyle, marginBottom: 0 }} value={profile.identity.licenseNumber}
+              onChange={(e) => onChange({ ...profile, identity: { ...profile.identity, licenseNumber: e.target.value } })} />
+          </>
+        )}
+
+        {active === 'geographies' && (
+          <>
+            <FieldLabel>Core zip codes (comma-separated)</FieldLabel>
+            <input style={fieldStyle} value={profile.geographies.zipCodes.join(', ')}
+              onChange={(e) => onChange({ ...profile, geographies: { ...profile.geographies, zipCodes: splitList(e.target.value) } })} />
+            <FieldLabel>Neighborhood tags (comma-separated)</FieldLabel>
+            <input style={{ ...fieldStyle, marginBottom: 0 }} value={profile.geographies.neighborhoods.join(', ')}
+              onChange={(e) => onChange({ ...profile, geographies: { ...profile.geographies, neighborhoods: splitList(e.target.value) } })} />
+          </>
+        )}
+
+        {active === 'superpowers' && (
+          <>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
+              {(Object.keys(profile.superpowers) as (keyof DemoAgentProfile['superpowers'])[])
+                .filter((k) => k !== 'languages')
+                .map((k) => (
+                  <Chip
+                    key={k}
+                    active={profile.superpowers[k] as boolean}
+                    onClick={() => onChange({ ...profile, superpowers: { ...profile.superpowers, [k]: !profile.superpowers[k] } })}
+                  >
+                    {SUPERPOWER_LABELS[k]}
+                  </Chip>
+                ))}
+            </div>
+            <FieldLabel>Languages spoken (comma-separated)</FieldLabel>
+            <input style={{ ...fieldStyle, marginBottom: 0 }} value={profile.superpowers.languages.join(', ')}
+              onChange={(e) => onChange({ ...profile, superpowers: { ...profile.superpowers, languages: splitList(e.target.value) } })} />
+          </>
+        )}
+
+        {active === 'vendors' && (
+          <>
+            <p style={{ fontSize: 11, fontWeight: 700, color: MUTED, margin: '0 0 6px' }}>Preferred lender</p>
+            <FieldLabel>Name</FieldLabel>
+            <input style={fieldStyle} value={profile.vendors.lender.name}
+              onChange={(e) => onChange({ ...profile, vendors: { ...profile.vendors, lender: { ...profile.vendors.lender, name: e.target.value } } })} />
+            <FieldLabel>Profession / company</FieldLabel>
+            <input style={fieldStyle} value={profile.vendors.lender.profession}
+              onChange={(e) => onChange({ ...profile, vendors: { ...profile.vendors, lender: { ...profile.vendors.lender, profession: e.target.value } } })} />
+            <FieldLabel>Phone</FieldLabel>
+            <input style={fieldStyle} value={profile.vendors.lender.phone}
+              onChange={(e) => onChange({ ...profile, vendors: { ...profile.vendors, lender: { ...profile.vendors.lender, phone: e.target.value } } })} />
+
+            <p style={{ fontSize: 11, fontWeight: 700, color: MUTED, margin: '14px 0 6px' }}>Go-to inspector</p>
+            <FieldLabel>Name</FieldLabel>
+            <input style={fieldStyle} value={profile.vendors.inspector.name}
+              onChange={(e) => onChange({ ...profile, vendors: { ...profile.vendors, inspector: { ...profile.vendors.inspector, name: e.target.value } } })} />
+            <FieldLabel>Profession / company</FieldLabel>
+            <input style={fieldStyle} value={profile.vendors.inspector.profession}
+              onChange={(e) => onChange({ ...profile, vendors: { ...profile.vendors, inspector: { ...profile.vendors.inspector, profession: e.target.value } } })} />
+            <FieldLabel>Phone</FieldLabel>
+            <input style={{ ...fieldStyle, marginBottom: 0 }} value={profile.vendors.inspector.phone}
+              onChange={(e) => onChange({ ...profile, vendors: { ...profile.vendors, inspector: { ...profile.vendors.inspector, phone: e.target.value } } })} />
+          </>
+        )}
+
+        {active === 'leadCapture' && (
+          <>
+            <FieldLabel>What should the bot optimize for?</FieldLabel>
+            <select
+              style={{ ...fieldStyle, marginBottom: 10 }}
+              value={profile.leadCaptureTrigger}
+              onChange={(e) => onChange({ ...profile, leadCaptureTrigger: e.target.value as LeadCaptureTrigger })}
+            >
+              <option value="aggressive">Aggressive — capture contact before details</option>
+              <option value="value-first">Value-First — answer 3 questions first</option>
+              <option value="consultative">Consultative — always push to book a call</option>
+            </select>
+            <p style={{ fontSize: 11, color: MUTED2, lineHeight: 1.4, margin: 0 }}>
+              {LEAD_CAPTURE_DESCRIPTIONS[profile.leadCaptureTrigger]}
+            </p>
+          </>
+        )}
+
+        {active === 'listings' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {listings.map((l) => (
+              <div key={l.address} style={{
+                border: `1px solid ${LINE}`, borderRadius: 12, padding: '10px 12px', background: 'rgba(255,255,255,0.02)',
+              }}>
+                <p style={{ fontSize: 12.5, fontWeight: 600, color: '#ECEBE6', margin: '0 0 2px' }}>{l.address}</p>
+                <p style={{ fontSize: 12, fontWeight: 700, color: ACCENT, margin: '0 0 4px' }}>{l.price}</p>
+                <p style={{ fontSize: 11, color: MUTED, margin: 0 }}>
+                  {l.beds > 0 ? `${l.beds}bd/${l.baths}ba · ` : ''}{l.sqft.toLocaleString()} sqft
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
 }
+
+function splitList(raw: string): string[] {
+  return raw.split(',').map((s) => s.trim()).filter(Boolean);
+}
+
+function Chip({ active, onClick, children }: { active: boolean; onClick: () => void; children: ReactNode }) {
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        fontSize: 11, fontWeight: 600, padding: '6px 12px', borderRadius: 100, cursor: 'pointer',
+        border: `1px solid ${active ? ACCENT : STRONG}`,
+        background: active ? 'rgba(200,255,52,0.12)' : 'transparent',
+        color: active ? ACCENT : MUTED,
+        fontFamily: 'var(--font-body)', transition: 'all 0.15s',
+      }}
+    >
+      {children}
+    </button>
+  );
+}
+
+const SUPERPOWER_LABELS: Record<Exclude<keyof DemoAgentProfile['superpowers'], 'languages'>, string> = {
+  firstTimeBuyers: 'First-Time Homebuyers',
+  luxury: 'Luxury Properties',
+  foreclosures: 'Foreclosures / Short Sales',
+  militaryVA: 'Military / VA Relocation',
+  commercial: 'Commercial Real Estate',
+};
+
+const LEAD_CAPTURE_DESCRIPTIONS: Record<LeadCaptureTrigger, string> = {
+  aggressive: 'The bot asks for email or phone before sharing specific listing details or pricing.',
+  'value-first': 'The bot answers 2-3 real questions first, then asks for contact info.',
+  consultative: 'The bot always steers toward booking a call via the calendar link, rather than answering everything in chat.',
+};
 
 function BouncingDots({ dark }: { dark?: boolean }) {
   const color = dark ? AINK : MUTED2;

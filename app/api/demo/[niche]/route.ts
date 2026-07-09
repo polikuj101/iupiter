@@ -7,6 +7,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generateReply } from '@/lib/llm';
 import { renderListingsForPrompt } from '@/lib/demo-listings';
+import { renderProfileForPrompt, type DemoAgentProfile } from '@/lib/demo-profile';
+
+const PROFILE_NICHES = new Set(['realestate', 'rental']);
 
 type Params = { params: Promise<{ niche: string }> };
 
@@ -270,11 +273,16 @@ export async function POST(req: NextRequest, { params }: Params) {
   try {
     const body = await req.json() as {
       history: { role: 'user' | 'assistant'; content: string }[];
+      profile?: DemoAgentProfile;
     };
 
+    const profileBlock = body.profile && PROFILE_NICHES.has(niche.toLowerCase())
+      ? renderProfileForPrompt(body.profile)
+      : '';
+
     const result = await generateReply(body.history ?? [], {
-      systemPrompt: config.systemPrompt,
-      model:        'gemini-2.5-flash',
+      systemPrompt: config.systemPrompt + profileBlock,
+      model:        'gemini-3.1-flash-lite',
       temperature:  0.7,
       maxTokens:    300,
     });
