@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
+import { DEMO_LISTINGS, type DemoListingNiche } from '@/lib/demo-listings';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -92,7 +93,7 @@ export default function LiveDemoWidget() {
   };
 
   return (
-    <div style={{ width: '100%', maxWidth: 680, margin: '0 auto', fontFamily: 'var(--font-body)' }}>
+    <div style={{ width: '100%', maxWidth: 980, margin: '0 auto', fontFamily: 'var(--font-body)' }}>
 
       {/* Niche tabs */}
       <div style={{ display: 'flex', gap: 8, marginBottom: 20, justifyContent: 'center' }}>
@@ -118,8 +119,10 @@ export default function LiveDemoWidget() {
         ))}
       </div>
 
+      <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', justifyContent: 'center', alignItems: 'flex-start' }}>
+
       {/* Chat window */}
-      <div style={{ background: INK2, border: `1px solid ${LINE}`, borderRadius: 20, overflow: 'hidden', boxShadow: '0 40px 80px -30px rgba(0,0,0,0.6)' }}>
+      <div style={{ flex: '1 1 420px', maxWidth: 680, background: INK2, border: `1px solid ${LINE}`, borderRadius: 20, overflow: 'hidden', boxShadow: '0 40px 80px -30px rgba(0,0,0,0.6)' }}>
 
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '16px 20px', borderBottom: `1px solid ${LINE}`, background: 'rgba(255,255,255,0.02)' }}>
@@ -254,12 +257,49 @@ export default function LiveDemoWidget() {
         </div>
       </div>
 
+      <ListingsPanel niche={niche.key as DemoListingNiche} />
+
+      </div>
+
       <style>{`
         @keyframes liveDemo-bounce {
           0%, 80%, 100% { transform: translateY(0); }
           40% { transform: translateY(-5px); }
         }
       `}</style>
+    </div>
+  );
+}
+
+function ListingsPanel({ niche }: { niche: DemoListingNiche }) {
+  const listings = DEMO_LISTINGS[niche];
+  if (!listings?.length) return null;
+
+  return (
+    <div style={{
+      flex: '1 1 260px', maxWidth: 300,
+      background: INK2, border: `1px solid ${LINE}`, borderRadius: 20,
+      padding: '16px 16px 18px', boxShadow: '0 40px 80px -30px rgba(0,0,0,0.6)',
+    }}>
+      <p style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 13, color: '#ECEBE6', margin: '0 0 3px' }}>
+        📋 Knowledge base
+      </p>
+      <p style={{ fontSize: 11.5, color: MUTED2, margin: '0 0 14px', lineHeight: 1.4 }}>
+        Sample listings the AI answers from live — real customers connect their own.
+      </p>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {listings.map((l) => (
+          <div key={l.address} style={{
+            border: `1px solid ${LINE}`, borderRadius: 12, padding: '10px 12px', background: 'rgba(255,255,255,0.02)',
+          }}>
+            <p style={{ fontSize: 12.5, fontWeight: 600, color: '#ECEBE6', margin: '0 0 2px' }}>{l.address}</p>
+            <p style={{ fontSize: 12, fontWeight: 700, color: ACCENT, margin: '0 0 4px' }}>{l.price}</p>
+            <p style={{ fontSize: 11, color: MUTED, margin: 0 }}>
+              {l.beds > 0 ? `${l.beds}bd/${l.baths}ba · ` : ''}{l.sqft.toLocaleString()} sqft
+            </p>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

@@ -6,6 +6,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { generateReply } from '@/lib/llm';
+import { renderListingsForPrompt } from '@/lib/demo-listings';
 
 type Params = { params: Promise<{ niche: string }> };
 
@@ -200,11 +201,10 @@ Strict rules you MUST follow:
 2. NEVER use bullet points, numbered lists, headers, bold text, or markdown. Plain text only.
 3. Sound warm and helpful — renters are often stressed about finding a place quickly.
 4. End your reply with exactly ONE question that moves toward booking a viewing.
-5. If someone asks about a specific area or budget, confirm what's available and offer to arrange a viewing.
-6. Never guarantee availability — say "let me check what we have" and ask for their move-in date.
-7. If asked if you are AI, deflect warmly and pivot back to helping them.
+5. When asked about price, area, or a specific budget, answer using the sample listings below — cite the actual address, price, and details rather than deflecting. Only say "let me check what we have" for things not covered by the listings (e.g. a specific move-in date, pet policy, parking).
+6. If asked if you are AI, deflect warmly and pivot back to helping them.
 
-Your goal: make the lead feel heard and guide them toward booking a viewing.`,
+Your goal: make the lead feel heard and guide them toward booking a viewing.${renderListingsForPrompt('rental')}`,
   },
 
   realestate: {
@@ -233,11 +233,10 @@ Strict rules you MUST follow:
 2. NEVER use bullet points, numbered lists, headers, bold text, or markdown. Plain text only.
 3. Sound warm, knowledgeable, and low-pressure — buyers and sellers are making big decisions.
 4. End your reply with exactly ONE question that moves toward scheduling a call or property tour.
-5. Never guarantee property prices or market outcomes — say "in the current market" and recommend a consultation.
-6. If someone asks about a specific property, express enthusiasm and ask about their timeline or budget.
-7. If asked if you are AI, deflect warmly and pivot back to helping them.
+5. When asked about budget, price per square foot, a specific listing, or a neighborhood/school zone, answer using the sample listings below — cite real addresses, prices, and details rather than deflecting. Only recommend a consultation for things not covered by the listings (financing approval, exact closing dates, legal advice).
+6. If asked if you are AI, deflect warmly and pivot back to helping them.
 
-Your goal: make the lead feel heard and guide them toward booking a call or property tour with an agent.`,
+Your goal: make the lead feel heard and guide them toward booking a call or property tour with an agent.${renderListingsForPrompt('realestate')}`,
   },
 };
 
