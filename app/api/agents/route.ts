@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
     name:             body.name ?? 'New Agent',
     business_context: body.business_context ?? null,
     system_prompt:    body.system_prompt ?? null,
-    llm_model:        body.llm_model ?? 'gemini-2.0-flash',
+    llm_model:        body.llm_model ?? 'gemini-3.1-flash-lite',
     temperature:      body.temperature ?? 0.7,
     max_tokens:       body.max_tokens ?? 300,
     is_active:        true,

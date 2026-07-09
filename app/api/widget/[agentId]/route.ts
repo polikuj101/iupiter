@@ -135,7 +135,7 @@ export async function POST(req: NextRequest, { params }: Params) {
     const result = await generateReply(history, {
       systemPrompt:      agent.system_prompt    ?? undefined,
       businessContext:   agent.business_context ?? undefined,
-      model:             agent.llm_model        ?? 'gemini-2.5-flash',
+      model:             agent.llm_model        ?? 'gemini-3.1-flash-lite',
       temperature:       agent.temperature      ?? 0.7,
       maxTokens:         agent.max_tokens       ?? 300,
       calendarConnected,
