@@ -11,8 +11,7 @@ import {
 // ─── Models with optimal temperatures ────────────────────────────
 
 const MODELS = [
-  { value: 'gemini-2.5-flash',      label: 'Gemini 2.5 Flash',      badge: 'Free quota', temp: 0.7 },
-  { value: 'gemini-2.5-flash-lite', label: 'Gemini 2.5 Flash Lite', badge: 'Free quota', temp: 0.5 },
+  { value: 'gemini-3.1-flash-lite', label: 'Gemini 3.1 Flash Lite', badge: 'Free quota', temp: 0.7 },
 ];
 
 // ─── System prompt presets ────────────────────────────────────────

@@ -2,11 +2,14 @@ import { GoogleGenerativeAI, GoogleGenerativeAIFetchError, FunctionDeclaration, 
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY || '');
 
-// Free-tier gemini-2.5-flash is capped at 5 requests/min *per project*, shared
-// across every agent's widget. gemini-2.5-flash-lite has a higher free-tier
-// ceiling (15 RPM / 1000 RPD), so we retry on it once if the primary model
-// gets rate limited, instead of surfacing a hard failure to the visitor.
-const FALLBACK_MODEL = process.env.GOOGLE_FALLBACK_MODEL || 'gemini-2.5-flash-lite';
+// Free-tier quotas are low and shared across every agent's widget, and Google
+// periodically deprecates model IDs outright (gemini-2.5-flash and
+// gemini-2.5-flash-lite were both retired mid-2026, returning 404 "no longer
+// available" instead of a normal error). Rather than hardcode a model name
+// that can silently start failing for every agent, retry once on
+// GOOGLE_FALLBACK_MODEL whenever the primary model is unavailable for either
+// reason (429 rate limited, or 404 deprecated/unknown model).
+const FALLBACK_MODEL = process.env.GOOGLE_FALLBACK_MODEL || 'gemini-3.1-flash-lite';
 
 // gemini-2.5-* models "think" before answering, and — unless includeThoughts
 // is explicitly set (we never set it) — that reasoning is never returned in
@@ -108,7 +111,7 @@ export async function generateReply(
   history: { role: 'user' | 'assistant'; content: string }[],
   options?: LLMOptions,
 ): Promise<LLMResponse> {
-  const modelName = options?.model || process.env.GOOGLE_MODEL || 'gemini-2.5-flash';
+  const modelName = options?.model || process.env.GOOGLE_MODEL || 'gemini-3.1-flash-lite';
 
   const tools: Tool[] = options?.calendarConnected
     ? [{ functionDeclarations: [BOOK_APPOINTMENT_FUNCTION] }]
@@ -153,8 +156,8 @@ export async function generateReply(
   try {
     response = await callModel(modelName);
   } catch (err) {
-    const isRateLimited = err instanceof GoogleGenerativeAIFetchError && err.status === 429;
-    if (isRateLimited && modelName !== FALLBACK_MODEL) {
+    const isRetryable = err instanceof GoogleGenerativeAIFetchError && (err.status === 429 || err.status === 404);
+    if (isRetryable && modelName !== FALLBACK_MODEL) {
       response = await callModel(FALLBACK_MODEL);
     } else {
       throw err;
