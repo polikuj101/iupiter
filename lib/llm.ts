@@ -69,7 +69,7 @@ Do NOT book without getting all required information first.`;
 
 // ─── Function declarations ────────────────────────────────────────
 
-const BOOK_APPOINTMENT_FUNCTION: FunctionDeclaration = {
+export const BOOK_APPOINTMENT_FUNCTION: FunctionDeclaration = {
   name: 'book_appointment',
   description: 'Books an appointment in Google Calendar when the customer provides their name, date, time, and service.',
   parameters: {
