@@ -281,13 +281,15 @@ export default function VoiceDemoPage() {
   }, []);
 
   return (
-    <div style={{ maxWidth: 980, margin: '0 auto', padding: '32px 20px', fontFamily: 'system-ui, sans-serif', color: INK }}>
-      <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 4, color: INK }}>Set up your voice agent</h1>
-      <p style={{ color: MUTED, marginBottom: 24 }}>
-        Runs directly against your Google account&apos;s free tier — no phone call, no cost.
-      </p>
+    // Explicit light background: the site body defaults to a dark theme, but this page is light-themed throughout.
+    <div style={{ minHeight: '100vh', background: '#fff' }}>
+      <div style={{ maxWidth: 980, margin: '0 auto', padding: '32px 20px', fontFamily: 'system-ui, sans-serif', color: INK }}>
+        <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 4, color: INK }}>Set up your voice agent</h1>
+        <p style={{ color: MUTED, marginBottom: 24 }}>
+          Runs directly against your Google account&apos;s free tier — no phone call, no cost.
+        </p>
 
-      <StepDots step={step} />
+        <StepDots step={step} />
 
       {step === 'info' && (
         <InfoStep
@@ -329,6 +331,7 @@ export default function VoiceDemoPage() {
           onEditSetup={() => setStep('info')}
         />
       )}
+      </div>
     </div>
   );
 }
