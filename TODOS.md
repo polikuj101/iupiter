@@ -22,6 +22,18 @@
 **Where:** New `lib/knowledge-base.ts`, new `app/api/knowledge-base/*` routes, migration adding a vector column to the existing (currently dormant) `knowledge_docs` table (`supabase/migrations/001_initial_schema.sql:97-109`), and a dashboard UI for uploads.
 **Critical constraint:** retrieval MUST be scoped by `agent_id`/`org_id` — the highest-severity risk in this feature is cross-tenant data leakage.
 
+## Twilio signature validation on /api/twilio/voice-webhook
+**Trigger:** Before the outbound dialer handles real, non-test traffic again (see also: TWILIO_* env vars are currently empty in production — that's blocking the dialer today regardless).
+**What:** Add the same `twilio.validateRequest()` check now used on `incoming-webhook` to `voice-webhook` too.
+**Why:** Same gap, just lower severity there — `voice-webhook` only returns a `<Dial>` to whatever `To` number is posted, it doesn't leak a WS URL, but an unauthenticated caller could still trigger arbitrary outbound-looking TwiML.
+**Where:** `app/api/twilio/voice-webhook/route.ts`.
+
+## Migrations aren't applied automatically
+**Trigger:** Next time a migration file is added (there's no CI/CD step or `postbuild` hook that runs them — this is the second time a migration existed in the repo but not in the live Supabase DB, first was `widget_config`, now `forward_phone`).
+**What:** Wire `supabase db push` (or equivalent) into the deploy pipeline, or at minimum document "run this SQL in Supabase Studio" as a required manual step whenever `supabase/migrations/` gets a new file.
+**Why:** Silent divergence between repo and live schema causes confusing runtime errors (`column X does not exist`) that look like application bugs.
+**Where:** Deploy config / CI, or a README note until then.
+
 ## Tool-dispatch registry refactor
 **Trigger:** When a 3rd Gemini function-calling tool is added (after `book_appointment` and `search_properties`).
 **What:** Replace the `if (result.functionCall?.name === '...')` chain in `app/api/widget/[agentId]/route.ts` with a `Map<toolName, handler>` dispatch.
