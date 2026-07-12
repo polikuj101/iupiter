@@ -24,7 +24,12 @@ export async function POST() {
     const token = await ai.authTokens.create({
       config: {
         uses: 1,
-        expireTime: new Date(Date.now() + 5 * 60 * 1000).toISOString(),
+        // 30 min is the API's max for expireTime — this bounds the whole
+        // call, not just the connect step (that's newSessionExpireTime,
+        // below). Gemini also hard-caps audio-only sessions at 15 min
+        // server-side regardless of token lifetime; see the onclose handler
+        // in voice-demo/page.tsx for what happens when either limit hits.
+        expireTime: new Date(Date.now() + 30 * 60 * 1000).toISOString(),
         newSessionExpireTime: new Date(Date.now() + 60 * 1000).toISOString(),
       },
     });

@@ -259,8 +259,19 @@ export default function VoiceDemoPage() {
               if (!setupDone) { if (msg.setupComplete) { setupDone = true; resolve(); } return; }
               handleMessage(msg);
             },
-            onerror: (e) => { if (!setupDone) reject(new Error(e?.message || 'connection error')); },
-            onclose: (e) => { if (!setupDone) reject(new Error(`closed: ${e?.code} ${e?.reason || ''}`)); },
+            onerror: (e) => {
+              if (!setupDone) { reject(new Error(e?.message || 'connection error')); return; }
+              console.error('[voice-demo] session error mid-call:', e);
+              setErrorMsg(`connection lost (${e?.message || 'unknown'}) — click Start talking to begin a new call.`);
+              setCallStatus('error');
+              stopCallInternal();
+            },
+            onclose: (e) => {
+              if (!setupDone) { reject(new Error(`closed: ${e?.code} ${e?.reason || ''}`)); return; }
+              setErrorMsg(`call ended${e?.reason ? ` (${e.reason})` : ' (session limit reached)'} — click Start talking to begin a new call.`);
+              setCallStatus('error');
+              stopCallInternal();
+            },
           },
         }).then((s) => { sessionRef.current = s; }).catch((e) => { if (!setupDone) reject(e); });
       });
