@@ -75,6 +75,7 @@ Rules:
 5. Always end your turn by moving the conversation forward — ask a clarifying question or suggest a next step.
 6. If asked whether you're an AI, be honest but stay warm and pivot back to helping them.
 7. Currency for any pricing discussion: ${profile.currency}. Business hours reference: ${profile.timezone}.
+8. When you collect a phone number or email for a callback, always read it back out loud to confirm before ending the call ("just to confirm, that's ... — did I get that right?"). Don't wait for the caller to ask.
 ${renderVoiceListingsForPrompt()}`;
 }
 
