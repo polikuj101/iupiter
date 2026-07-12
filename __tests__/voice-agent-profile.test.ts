@@ -42,6 +42,11 @@ describe('buildVoiceAgentSystemPrompt', () => {
     expect(prompt).toContain('14 Maple Ave');
     expect(prompt).toMatch(/ACTIVE|PENDING|SOLD/);
   });
+
+  it('instructs the agent to read back a phone number or email before ending the call', () => {
+    const prompt = buildVoiceAgentSystemPrompt(DEFAULT_VOICE_AGENT_PROFILE);
+    expect(prompt).toMatch(/read it back out loud to confirm/i);
+  });
 });
 
 describe('explainAgentDesign', () => {
