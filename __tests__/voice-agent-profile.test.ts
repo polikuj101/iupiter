@@ -36,6 +36,12 @@ describe('buildVoiceAgentSystemPrompt', () => {
     const prompt = buildVoiceAgentSystemPrompt(profile);
     expect(prompt).not.toContain('sets');
   });
+
+  it('includes sample listings so status questions can be answered directly', () => {
+    const prompt = buildVoiceAgentSystemPrompt(DEFAULT_VOICE_AGENT_PROFILE);
+    expect(prompt).toContain('14 Maple Ave');
+    expect(prompt).toMatch(/ACTIVE|PENDING|SOLD/);
+  });
 });
 
 describe('explainAgentDesign', () => {
