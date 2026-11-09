@@ -1,18 +1,16 @@
-# Iupiter: an AI receptionist for real-estate agents, built, sold, and paused
+# Iupiter: an AI receptionist for real-estate agents, built and tested, never sold
 
-Iupiter answers an agent's inbound leads (phone calls, a website chat widget, Instagram/WhatsApp DMs) with an LLM, books appointments into Google Calendar, and can hand a live call to a human. I built it as a solo side project, tried to sell it by cold email and cold calls, got four paying customers, and lost all four after their first month. This repository is the system plus an honest account of what the attempt showed.
+Iupiter answers an agent's inbound leads (phone calls, a website chat widget, Instagram/WhatsApp DMs) with an LLM, books appointments into Google Calendar, and can hand a live call to a human. I built it as a solo side project and tested it by hand. It never had a paying customer. This repository is the system plus an honest account of what I did and did not find out.
 
 ## Status, stated plainly
 
 - **What exists:** a working prototype with 38 commits by one author ([polikuj101](https://github.com/polikuj101)), first commit 2026-04-04, last 2026-07-14. About 10,500 lines of TypeScript and TSX in the app (excluding tests) plus about 500 in the voice bridge, counted with `wc -l`.
 - **Where it runs:** nowhere right now. The hosted deployment is paused. It can be brought back by restoring the Supabase project (author's statement; not tested for this README).
-- **Commercial result (self-reported, not recorded in this repo):**
-  - About 800 cold emails produced 3 paying customers (about 0.38%).
-  - About 300 cold calls produced 1 paying customer. I did not record how many of those calls became conversations.
-  - Each of the four paid about $150 once (my list price was $149/month) and did not renew.
-  - I did not measure how many inbound calls the phone line ever received.
+- **Commercial result:** none. There were no sales and no paying customers, so there is no revenue, retention, or conversion data. My notes show an outreach campaign was started in June 2026 and paused a day later; no results were recorded.
+- **Inbound calls:** I never measured how many calls the phone line received.
+- **Dates:** development ran April to July 2026. Commits after 2026-07-14 (importing the voice bridge, this README) were made in November 2026.
 - **Who wrote the code:** AI coding assistants wrote the implementation. I did the architecture, the product and business decisions, and the sales. Commit trailers that credited the assistants were removed from the git history at my request; this paragraph is the disclosure.
-- **Not in scope of this README:** any claim that it works for customers at scale. It never ran for more than four customers.
+- **Not claimed:** that it works for real customers. It has never been used by one.
 
 ## Why this exists
 
@@ -21,21 +19,21 @@ A real-estate agent is often in a showing, driving, or asleep when a buyer calls
 - The best-known study of lead response speed is Oldroyd, McElheran and Elkington, ["The Short Life of Online Sales Leads"](https://hbr.org/2011/03/the-short-life-of-online-sales-leads), Harvard Business Review, March 2011 ([citation record](https://scholarsarchive.byu.edu/facpub/9711)). Its abstract says most companies "are not responding nearly fast enough". I could only read the abstract; the oft-quoted figures (for example "21 times more likely to qualify a lead within 5 minutes") come from secondary sources and I did not verify them in the paper. It studied online sales leads in general, not real estate.
 - A figure often repeated in sales content is "78% of customers buy from the first company to respond". I could not trace it to a primary study, so I do not use it. An earlier version of my own notes relied on it; I removed it.
 - Money at stake per deal: Redfin's closed-sale data put the average buyer's-agent commission at [2.42% in Q3 2025, up from 2.36% a year earlier](https://www.redfin.com/news/commissions-q3-2025). That is a rate, not a dollar figure: the dollar value depends on the sale price. An earlier "8 to 15 thousand per deal" figure in my notes had no source and is dropped.
-- **The gap I aimed at:** voicemail and generic answering services take a message. A voice agent can answer, qualify, and book. The most common architecture for phone agents chains speech-to-text, an LLM, and text-to-speech. I chose a single speech-to-speech model instead (see design decisions), and that choice is where the product later broke.
+- **The gap I aimed at:** voicemail and generic answering services take a message. A voice agent can answer, qualify, and book. The most common architecture for phone agents chains speech-to-text, an LLM, and text-to-speech. I chose a single speech-to-speech model instead (see design decisions), and that choice is where I hit latency limits in my own testing.
 
 ## Hypothesis
 
-**Bet:** an AI that answers every inbound lead in seconds, around the clock, recovers leads agents would otherwise lose, and agents will keep paying about $150/month for it.
+**Bet:** an AI that answers every inbound lead in seconds, around the clock, recovers leads agents would otherwise lose, and agents would pay about $150/month for it (my planned list price was $149).
 
 | # | Claim | Verdict | Evidence |
 |---|---|---|---|
 | 1 | Slow response loses leads | Supported by outside research, not tested by me | HBR 2011 (abstract only), linked above |
 | 2 | The AI answers faster than a human | **Partially confirmed** | I measured it by hand: faster than a human for the first 5 to 7 minutes of a live call, then up to about 5 seconds as the context grew. No log of this measurement exists in the repo |
-| 3 | Agents will pay for it | **Partially confirmed** | 4 paying customers (self-reported); 0.38% email conversion |
-| 4 | Agents keep paying | **Not confirmed** | All four left after one month |
-| 5 | Latency is why they left | **Not tested** | My own diagnosis. I did not interview the four customers or test it |
-| 6 | AI-handled leads turn into more appointments or deals | **Not tested** | No data on calls handled, appointments booked, or deals closed |
-| 7 | Callers accept talking to an AI | **Not tested** | No caller feedback collected |
+| 3 | Agents will pay for it | **Not tested** | No sales were made |
+| 4 | Agents would keep paying | **Not tested** | No customers |
+| 5 | AI-handled leads turn into more appointments or deals | **Not tested** | No data on calls handled, appointments booked, or deals closed |
+| 6 | Callers accept talking to an AI | **Not tested** | No caller feedback collected |
+| 7 | Long calls stay responsive on a single speech-to-speech model | **Contradicted in my own testing** | The latency growth described in row 2 |
 
 ## What I built
 
@@ -84,16 +82,14 @@ flowchart LR
 |---|---|---|
 | Unit tests: 13 suites, 63 tests pass; `tsc --noEmit` exits 0; voice-bridge builds | Run in a fresh clone (details under "Run it") | One machine; unit tests only, no telephony integration test |
 | Lint: `eslint .` reports 3 errors and 4 warnings (exit 1) | Same fresh clone | Not fixed; for example a plain `<a>` link in `app/not-found.tsx` |
-| Email conversion about 0.38% (3 paying customers from about 800 emails) | My own count | Approximate; not recorded in the repo |
-| Cold calls: 1 paying customer from about 300 calls | My own count | Conversations per call not recorded |
 | Live-call latency: below human for 5 to 7 minutes, then up to about 5 seconds | Measured by hand during testing | No log, no stated method, one model family |
-| Customer retention: 0 of 4 renewed | My own account | Cause not tested |
+| Customers, revenue, retention | None exist | No sales were made |
 | Inbound call volume | Not measured | The bridge only writes `call started` and `call ended` lines to its console and stores no transcripts |
 
 The text-chat path does store a per-message `response_time_ms` in the database ([`lib/agent.ts`](lib/agent.ts), schema in [`001_initial_schema.sql`](supabase/migrations/001_initial_schema.sql)). I have not examined that data for this README.
 
 **Discrepancies between my notes and the code, found while writing this:**
-- My startup tracker says "first paying client: pending, MRR $0". That predates the four sales; this README uses my later account.
+- My startup tracker says "first paying client: pending, MRR $0", which matches the final state: no sales.
 - [`TODOS.md`](TODOS.md) refers to a `search_properties` tool. The code defines only `book_appointment` and `transfer_to_agent`; sample listings are pasted into the prompt as static text.
 
 ## Debugging stories
@@ -107,11 +103,16 @@ The text-chat path does store a per-message `response_time_ms` in the database (
 
 ## What does not work yet
 
-- **Retention.** All four customers left after one month.
+- **No customers.** Nothing here was ever validated by someone paying for it.
 - **Long-call latency.** Up to about 5 seconds as context grew; no compression or session resumption is configured.
 - **No call analytics.** No stored transcripts, no call counts, no per-call records.
 - **One shared inbound number.** No per-agent numbers.
 - **No real knowledge base.** Demo listings are static fictional text; the `knowledge_docs` table is unused.
+- **Known weak points in the voice bridge (found by an automated security review, not fixed):**
+  - The same secret (`BRIDGE_SHARED_SECRET`) authenticates the Media Stream and the bridge's API calls into the app, and it is embedded in the TwiML that Twilio sees. A per-call, short-lived token would be better.
+  - The secret is compared with `!==`, not a constant-time comparison.
+  - If a caller hangs up while the Gemini session is still connecting, the session is opened afterwards and never closed. A second `start` event on one connection is accepted, and there is no cap on concurrent calls.
+  - The WebSocket server sets no `maxPayload` (the library default is 100 MiB) and no timeout for an unauthenticated connection.
 - **Known gaps tracked in [`TODOS.md`](TODOS.md):** no signature check on `voice-webhook`, no rate limit on the widget, migrations are applied by hand.
 - **No CI configuration**, no integration tests, and no tests for the bridge. Lint currently fails with 3 errors and 4 warnings.
 - **My test is weaker than reality.** The latency check was manual and short; I have no data from real inbound traffic.
@@ -174,6 +175,6 @@ TODOS.md             deferred work with triggers
 - **I review before I ship.** The webhook flaw above was found in review and fixed in the same change, before deployment.
 - **I take blockers as design input.** When Twilio blocked outbound calls, I rebuilt the dialer on Zadarma instead of waiting.
 - **I remove claims I cannot back.** Fabricated testimonials and two unsourced statistics are gone.
-- **I ran the sales myself.** The 800 emails and 300 calls were mine; this is how I learned the product kept customers for one month (self-reported).
+- **I report null results.** There were no sales, and I say so instead of presenting the prototype as a business.
 - **I test my own architectural bet and report the result.** I chose one speech-to-speech model, measured the latency, and recorded that it degraded.
 - **I use AI assistants for implementation and keep the decisions.** That split is stated above rather than hidden.
