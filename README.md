@@ -1,5 +1,9 @@
 # Iupiter: an AI receptionist for real-estate agents, built and tested, never sold
 
+**Author:** Nurbolat (Bo) Mirash, [polikuj101](https://github.com/polikuj101)  
+**Looking for:** Forward Deployed Engineer roles  
+**Contact:** bo.mirash@gmail.com, mirashnurbolat06@gmail.com
+
 Iupiter answers an agent's inbound leads (phone calls, a website chat widget, Instagram/WhatsApp DMs) with an LLM, books appointments into Google Calendar, and can hand a live call to a human. I built it as a solo side project and tested it by hand. It never had a paying customer. This repository is the system plus an honest account of what I did and did not find out.
 
 ## Status, stated plainly
