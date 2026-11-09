@@ -178,3 +178,7 @@ TODOS.md             deferred work with triggers
 - **I report null results.** There were no sales, and I say so instead of presenting the prototype as a business.
 - **I test my own architectural bet and report the result.** I chose one speech-to-speech model, measured the latency, and recorded that it degraded.
 - **I use AI assistants for implementation and keep the decisions.** That split is stated above rather than hidden.
+
+## License
+
+[MIT](LICENSE).
